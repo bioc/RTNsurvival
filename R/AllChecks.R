@@ -6,7 +6,9 @@
       stop("'survivalData' must be a data frame.", call. = FALSE)
     if (is.null(colnames(object1))) 
       stop("columns in 'survivalData' must be named.", call. = FALSE)
-  } 
+    if (is.null(rownames(object1))) 
+      stop("rows in 'survivalData' must be named.", call. = FALSE)    
+  }
   else if (type == "time"){
     if (!is.singleInteger(object1) && !is.singleString(object1)) 
       stop("'time' should be either a character or integer value !\n", 
@@ -72,6 +74,18 @@
     }
     return(object1)
   } 
+  else if (type == "samples.tni"){
+    if (is.null(object1)){
+      object1 <- rownames(object2)
+    } else {
+      if (!is.character(object1)) 
+        stop("'samples' must be a character vector.", call. = FALSE)
+      if (!all(object1 %in% rownames(object2))) 
+        stop("All strings in 'samples' must appear in the 'tni' object", 
+             call. = FALSE)
+    }
+    return(object1)
+  }
   else if (type == "survival_cox"){
     if (nrow(object1) < 50)
       warning("If the number of samples in 'survivalData' is too small, 

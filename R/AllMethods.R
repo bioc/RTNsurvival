@@ -55,32 +55,25 @@ setMethod("tni2tnsPreprocess", "TNI",
               regulatoryElements <- .checkRegel(tni, regulatoryElements)
               tni@regulatoryElements <- regulatoryElements
             }
-            
-            #-- is.null
             if (is.null(survivalData)){
-              res <- try(tni.get(tni, "colAnnotation"), silent = TRUE)
-              if (class(res) == "try-error"){
-                stop("Must provide a 'survivalData' object.")
-              } else if(nrow(res)){
-                survivalData <- res
+              survivalData <- tni.get(tni, "colAnnotation")
+              samples <- .tns.checks(samples, survivalData, type = "samples.tni")
+            } else {
+              .tns.checks(survivalData, type = "survivalData")
+              samples <- .tns.checks(samples, survivalData, type = "samples")
+              if (!all(samples %in% colnames(tni@gexp))) {
+                tp <- paste("NOTE: all sample names listed in 'survivalData'",
+                            "rownames must be available in the 'tni' object!")
+                stop(tp)
               }
-              survivalData <- res
             }
-            
-            #-- par checks
-            .tns.checks(survivalData, type = "survivalData")
-            time = .tns.checks(time, survivalData, type = "time")
-            event = .tns.checks(event, survivalData, type = "event")
-            .tns.checks(endpoint, type = "endpoint")
+            #-- other checks
+            time <- .tns.checks(time, survivalData, type = "time")
+            event <- .tns.checks(event, survivalData, type = "event")
             .tns.checks(keycovar, survivalData, "Keycovars")
-            samples = .tns.checks(samples, survivalData, type = "samples")
+            .tns.checks(endpoint, type = "endpoint")
             .tns.checks(excludeMid, type = "excludeMid")
             .tns.checks(pAdjustMethod, type = "pAdjustMethod")
-            
-            #-- other checks
-            if (!all(samples %in% colnames(tni@gexp))) {
-              stop("NOTE: all sample names listed in 'survivalData' rownames must be available in the 'tni' object!")
-            }
             
             #-- reorganize survivalData
             idx <- c(time, event)
@@ -131,7 +124,7 @@ setMethod("tni2tnsPreprocess", "TNI",
 #'
 #'# parallel version with SNOW package!
 #'library(snow)
-#'options(cluster=makeCluster(3, "SOCK"))
+#'options(cluster=snow::makeCluster(3, "SOCK"))
 #'stns <- tnsGSEA2(stns)
 #'stopCluster(getOption("cluster"))
 #'

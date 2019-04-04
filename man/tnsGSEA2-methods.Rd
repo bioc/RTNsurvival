@@ -36,7 +36,7 @@ stns <- tnsGSEA2(stns)
 
 # parallel version with SNOW package!
 library(snow)
-options(cluster=makeCluster(3, "SOCK"))
+options(cluster=snow::makeCluster(3, "SOCK"))
 stns <- tnsGSEA2(stns)
 stopCluster(getOption("cluster"))
 
