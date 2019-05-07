@@ -17,8 +17,11 @@
 
 \item{regs}{An optional string vector specifying regulons to make the plot.}
 
-\item{attribs}{A numeric vector. Contains the columns of the survival 
-data.frame which will be plotted for the second panel.}
+\item{attribs}{A character vector of attributes listed in the column 
+names of the survivalData. All attributes should be binary encoded for
+plotting. Available attributes can be checked by running 
+colnames(tnsGet(tns, "survivalData")). Alternatively, attributes
+can be grouped when provided within a list.}
 
 \item{fname}{A string. The name of the file in which the plot will be saved}
 

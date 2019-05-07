@@ -154,6 +154,7 @@ setMethod("tnsGSEA2", "TNS", function(tns, ...) {
   tni <- tnsGet(tns, what = "TNI")
   regulonActivity <- tni.gsea2(tni, ...=...)
   tns <- tns.set(tns, regulonActivity, "regulonActivity")
+  tns <- tnsStratification(tns, nSections = 1, center = TRUE)
   return(tns)
 })
 
@@ -312,6 +313,7 @@ setMethod("tnsKM", "TNS",
             #---
             resKM <- list(Table=kmTable, Fit=kmFit)
             tns <- tns.set(tns, resKM, "KM")
+            tns <- tnsStratification(tns, nSections = nSections, center = TRUE)
             return(tns)
           })
 
@@ -327,8 +329,11 @@ setMethod("tnsKM", "TNS",
 #'
 #' @param tns A \linkS4class{TNS} object, which must have passed GSEA2 analysis.
 #' @param regs An optional string vector specifying regulons to make the plot.
-#' @param attribs A numeric vector. Contains the columns of the survival 
-#' data.frame which will be plotted for the second panel.
+#' @param attribs A character vector of attributes listed in the column 
+#' names of the survivalData. All attributes should be binary encoded for
+#' plotting. Available attributes can be checked by running 
+#' colnames(tnsGet(tns, "survivalData")). Alternatively, attributes
+#' can be grouped when provided within a list.
 #' @param fname A string. The name of the file in which the plot will be saved
 #' @param fpath A string. The path to the directory where the plot will be saved
 #' @param xlab A string. The label for the x axis on the third panel. This should
@@ -391,15 +396,18 @@ setMethod("tnsPlotKM", "TNS",
               stop("NOTE: TNS object needs to be evaluated by 'tnsKM'!", 
                    call. = FALSE)
             
-            #-- get data and para
-            regulonActivity <- tnsGet(tns, what = "regulonActivity")
-            survData <- tnsGet(tns, what = "survivalData")
-            kmTable <- tnsGet(tns, what = "kmTable")
-            kmFit <- tnsGet(tns, what = "kmFit")
+            #-- stratification
             para <- tnsGet(tns, what = "para")
             endpoint <- para$endpoint
             excludeMid <- para$excludeMid
             nSections <-  para$nSections
+            tns <- tnsStratification(tns, nSections = nSections, center = FALSE)
+            
+            #-- get data
+            regulonActivity <- tnsGet(tns, what = "regulonActivity")
+            survData <- tnsGet(tns, what = "survivalData")
+            kmTable <- tnsGet(tns, what = "kmTable")
+            kmFit <- tnsGet(tns, what = "kmFit")
             
             #-- check colorPalette with nSections
             .tns.checks(colorPalette, nSections, type = "colorPalette")
@@ -435,7 +443,7 @@ setMethod("tnsPlotKM", "TNS",
             fname <- gsub(".pdf", '',fname, ignore.case = TRUE)
             
             #---plot
-            if(plotbatch & plotpdf){
+            if(plotbatch){
               fname <- paste(fname, ".pdf", sep = "")
               pdf(file = paste(fpath, "/", fname, sep = ""), width = width, height = height)
               for(reg in reglist){
@@ -448,10 +456,9 @@ setMethod("tnsPlotKM", "TNS",
                           groups=groups)
               }
               dev.off()
-              if(plotpdf){
-                tp1 <- c("NOTE: file '",fname,"' should be available either in the\n")
-                tp2 <- c("working directory or in a user's custom directory!\n")
-              }
+              tp1 <- c("NOTE: file '",fname,"' should be available either in the\n")
+              tp2 <- c("working directory or in a user's custom directory!\n")
+              message(tp1,tp2)
             } else {
               for(reg in reglist){
                 if(plotpdf){
@@ -658,7 +665,8 @@ setMethod("tnsCox", "TNS",
             #--- add original symbols to rownames
             idx <- match(names(regs), rownames(coxTable))
             rownames(coxTable)[idx] <- regs
-            coxTable <- data.frame(Regulons=rownames(coxTable), coxTable)
+            coxTable <- data.frame(Regulons=rownames(coxTable), coxTable, 
+                                   stringsAsFactors = FALSE)
             
             #--- adjust pvalues and assign significant results
             coxTable$Adjusted.Pvalue <- p.adjust(coxTable$Pvalue, method = pAdjustMethod)
@@ -733,7 +741,7 @@ setMethod("tnsPlotCox", "TNS",
                    call. = FALSE)
             
             #-- gets
-            coxTable <- tnsGet(tns, what = "coxTable")
+            coxTable <- tns@results$Cox$Table
             para <- tnsGet(tns, what = "para")
             keycovar <- para$keycovar
             
@@ -811,7 +819,9 @@ setMethod("tnsGet", "TNS", function(tns, what)
   } else if (what == "kmFit"){
     return(tns@results$KM$Fit)
   } else if(what == "coxTable"){
-    return(tns@results$Cox$Table)
+    query <- tns@results$Cox$Table
+    query <- query[!query$Regulons%in%tns@para$keycovar,]
+    return(query)
   } else if(what == "coxFit"){
     return(tns@results$Cox$Fit)
   } else if(what == "kmInteractionTable"){
@@ -1171,7 +1181,7 @@ setMethod("tnsCoxInteraction", "TNS",
                 stop("NOTE: when 'stepFilter=TRUE', the TNS object needs to be evaluated by 'tnsCox'!", 
                      call. = FALSE)
               }
-              coxtb <- tnsGet(tns, what = "coxTable")
+              coxtb <- tns@results$Cox$Table
               coxtb <- coxtb[coxtb$Adjusted.Pvalue<=pValueCutoff, ]
               idx <- dualtb$reg1%in%rownames(coxtb) | dualtb$reg2%in%rownames(coxtb)
               dualtb <- dualtb[idx,]

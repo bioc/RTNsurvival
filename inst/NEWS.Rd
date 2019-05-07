@@ -2,6 +2,12 @@
 \title{RTNsurvival News}
 \encoding{UTF-8}
 
+\section{Version 1.8.0}{
+  \itemize{
+    \item Improved workflow, integration with derivative packages (RTN / RTNsurvival).
+  }
+}
+
 \section{Version 1.6.0}{
   \itemize{
     \item Improved workflow, integration with derivative packages (RTN / RTNduals).
