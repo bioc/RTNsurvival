@@ -16,9 +16,11 @@
 
 \item{regs}{An optional string vector specifying regulons to plot.}
 
-\item{attribs}{A character vector of column names from the survivalData. All
-attribs should be either binary encoded or categorical variables for plotting.
-Available attribs can be checked by running colnames(tnsGet(tns, "survivalData"))}
+\item{attribs}{A character vector of attributes listed in the column 
+names of the survivalData. All attributes should be either binary
+encoded or categorical variables for plotting. Available attributes
+can be checked by running  colnames(tnsGet(tns, "survivalData")).
+Alternatively, attributes can be grouped when provided within a list.}
 
 \item{fname}{A string. The name of the file in which the plot will be saved}
 
@@ -67,15 +69,13 @@ Automatic dummy encoding is available for categorical variables.
  
  # plot only binary covariates
  tnsPlotCovariates(stns, "MYB", 
- attribs = c("ER+", "ER-", "PR+", "PR-", "LumA", "LumB", "Basal", "Her2",
- "Normal"),
- divs = c(2, 4))
+ attribs = c("ER+", "ER-", "PR+", "PR-", "LumA", "LumB", "Basal", 
+ "Her2", "Normal"), divs = c(2, 4))
  
  # also dummy encode categorical variables (LN and Grade)
  tnsPlotCovariates(stns, "MYB", 
- attribs = c("ER+", "ER-", "PR+", "PR-", "LumA", "LumB", "Basal", "Her2",
- "Normal", "LN", "Grade"),
- divs = c(2, 4, 9, 12))
+ attribs = c("ER+", "ER-", "PR+", "PR-", "LumA", "LumB", "Basal", 
+ "Her2", "Normal", "LN", "Grade"), divs = c(2, 4, 9, 12))
  
  # don't dummy encode categorical variables
  tnsPlotCovariates(stns, "MYB", attribs = c("ER+", "ER-", "PR+", "PR-",
