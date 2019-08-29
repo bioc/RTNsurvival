@@ -4,12 +4,12 @@
 \alias{tnsStratification}
 \title{Sample stratification for a TNS object}
 \usage{
-tnsStratification(tns, nSections = 1, center = FALSE)
+tnsStratification(tns, sections = 1, center = FALSE)
 }
 \arguments{
 \item{tns}{a \linkS4class{TNS} object, which must have passed GSEA2 analysis.}
 
-\item{nSections}{A numeric value for the stratification of the sample. The 
+\item{sections}{A numeric value for the stratification of the sample. The 
 larger the number, the more subdivisions will be created for the Kaplan-Meier 
 analysis.}
 

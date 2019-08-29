@@ -14,7 +14,7 @@ setGeneric("tnsAREA3",
              standardGeneric("tnsAREA3"), package = "RTNsurvival")
 
 setGeneric("tnsKM", 
-           function(tns, regs = NULL, nSections = 1, verbose = TRUE) 
+           function(tns, regs = NULL, sections = 1, verbose = TRUE) 
              standardGeneric("tnsKM"), package = "RTNsurvival")
 
 setGeneric("tnsPlotKM", 
@@ -81,7 +81,8 @@ setGeneric("tnsPlotGSEA2",
 
 setGeneric("tnsPlotCovariates",
            function(tns, regs = NULL, attribs = NULL, fname = "covarplot", 
-                    fpath = ".", plotpdf = FALSE, plotbatch = FALSE,
+                    fpath = ".", ylab = "Regulon activity (dES)", xlab="Samples", 
+                    plotpdf = FALSE, plotbatch = FALSE,
                     panelHeights = c(1,1), width = 5.3, height = 4,
                     dummyEncode = TRUE, divs = NULL)
                standardGeneric("tnsPlotCovariates"), package = "RTNsurvival")

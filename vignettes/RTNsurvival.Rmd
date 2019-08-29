@@ -75,6 +75,7 @@ The `tnsCox` method runs a Cox multivariate regression analysis and shows the pr
 
 ```{r, eval=FALSE}
 rtns <- tnsCox(rtns)
+tnsPlotCox(rtns)
 ```
 
 ```{r, eval=TRUE, include=FALSE}
@@ -121,7 +122,7 @@ An overview of regulon activity can be obtained by plotting a heatmap with all e
 
 ```{r, eval = FALSE}
 library(pheatmap)
-enrichmentScores <- tnsGet(rtns, "EScores")
+enrichmentScores <- tnsGet(rtns, "regulonActivity")
 survival.data <- tnsGet(rtns, "survivalData")
 annotation_col <- survival.data[,c("ER+", "ER-")]
 pheatmap(t(enrichmentScores$dif), 

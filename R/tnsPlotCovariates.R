@@ -15,6 +15,8 @@
 #' Alternatively, attributes can be grouped when provided within a list.
 #' @param fname A string. The name of the file in which the plot will be saved
 #' @param fpath A string. The path to the directory where the plot will be saved
+#' @param ylab A string. The label of the y-axis, describing what is represented.
+#' @param xlab A string. The label of the x-axis.
 #' @param plotpdf A logical value. If TRUE, a pdf file is created instead of 
 #' plotting to the graphics device.
 #' @param plotbatch A logical value. If TRUE, plots for all regulons are saved 
@@ -66,15 +68,17 @@
 #' @export
 setMethod("tnsPlotCovariates", "TNS", 
           function(tns, regs = NULL, attribs = NULL, fname = "covarplot", 
-                   fpath = ".", plotpdf = FALSE, plotbatch = FALSE,
-                   panelHeights = c(1,1), width = 5.3, height = 4,
-                   dummyEncode = TRUE, divs = NULL) {
+                   fpath = ".", ylab = "Regulon activity (dES)", xlab="Samples", 
+                   plotpdf = FALSE, plotbatch = FALSE, panelHeights = c(1,1), 
+                   width = 5.3, height = 4, dummyEncode = TRUE, divs = NULL) {
             #-- Parameter checks
             .tns.checks(tns, type = "Activity")
             .tns.checks(regs, type = "regs")
             .tns.checks(attribs, tns@survivalData, type = "attribs")
             .tns.checks(fname, type = "fname")
             .tns.checks(fpath, type = "fpath")
+            .tns.checks(ylab, type = "ylab")
+            .tns.checks(xlab, type = "xlab")
             .tns.checks(plotpdf, type = "plotpdf")
             .tns.checks(plotbatch, type = "plotbatch")
             .tns.checks(width, type = "width")
@@ -95,9 +99,9 @@ setMethod("tnsPlotCovariates", "TNS",
             
             #-- Get data
             regact <- tnsGet(tns, "regulonActivity")$dif
-            regstatus <- tnsGet(tns, "regulonActivity")$regstatus
-            regstatus <- apply(regstatus, 1:2, as.character)
-            colnames(regstatus) <- colnames(regact)
+            status <- tnsGet(tns, "regulonActivity")$status
+            status <- apply(status, 1:2, as.character)
+            colnames(status) <- colnames(regact)
             survData <- tnsGet(tns, "survivalData")
             
             #-- Get regs
@@ -111,7 +115,7 @@ setMethod("tnsPlotCovariates", "TNS",
             }
             
             #-- Create plotData
-            plotData <- data.frame(rownames(regact), regact[,regs], regstatus[,regs])
+            plotData <- data.frame(rownames(regact), regact[,regs], status[,regs])
             colnames(plotData) <- c("Sample_name", regs, paste0(regs, "_status"))
             
             #-- attribs preprocess
@@ -203,7 +207,8 @@ setMethod("tnsPlotCovariates", "TNS",
             
             #-- Plot covars
             allPlots <- lapply(regs, ggPlotCovariates, plotData, 
-                               attrib_names, panelHeights, dummyEncode, divs)
+                               attrib_names, panelHeights, dummyEncode, 
+                               divs, xlab, ylab)
             
             if (plotpdf){
               #-- Treat fname
@@ -252,7 +257,7 @@ setMethod("tnsPlotCovariates", "TNS",
 
 
 ggPlotCovariates <- function(reg, plotData, attrib_names, panelHeights, 
-                             dummyEncode, divs) {
+                             dummyEncode, divs, xlab, ylab) {
   #-- Copy data
   plotData_reg <- plotData
   
@@ -270,11 +275,11 @@ ggPlotCovariates <- function(reg, plotData, attrib_names, panelHeights,
   
   #-- First plot (regulon activity + stratification)
   if(length(attrib_names) == 0) {
-    p1 <- ggDesPlot(plotData_reg, pal, reg, xaxis = "bottom")
+    p1 <- ggDesPlot(plotData_reg, pal, reg, xlab, ylab, xaxis = "bottom")
     plot <- list(grid_plot = p1, ggplots = p1)
     return(plot)
   }
-  p1 <- ggDesPlot(plotData_reg, pal, reg)
+  p1 <- ggDesPlot(plotData_reg, pal, reg, xlab, ylab)
   
   #-- Melt data for second plot
   attribData <- as.data.frame(apply(plotData_reg[,attrib_names], 1:2, "as.character"))
@@ -296,13 +301,13 @@ ggPlotCovariates <- function(reg, plotData, attrib_names, panelHeights,
   return(list(grid_plot = grid_plot, ggplots = ggplots))
 }
 
-ggDesPlot <- function(plotData_reg, pal, reg, xaxis = "top", flipPlot = FALSE) {
-  p <- ggplot(plotData_reg, aes_string("Samples", "reg")) +
+ggDesPlot <- function(plotData_reg, pal, reg, xlab, ylab, 
+                      xaxis = "top", flipPlot = FALSE) {
+  p <- ggplot(plotData_reg, aes_string(xlab, "reg")) +
     geom_bar(aes_string(fill = "reg_status"), stat = "identity", width = 1) +
     annotate("text", x = 0, y = 1.7, label = reg, hjust = -0.2) +
     scale_fill_manual(values = pal) +
-    scale_y_continuous(name = "Regulon activity (dES)", 
-                       limits = c(-2, 2), expand = c(0,0)) +
+    scale_y_continuous(name = ylab, limits = c(-2, 2), expand = c(0,0)) +
     guides(fill = FALSE) +
     theme_classic() +
     theme(plot.margin = unit(c(2,4,2,4), "mm")) +

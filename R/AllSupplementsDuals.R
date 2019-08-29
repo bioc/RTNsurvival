@@ -8,7 +8,7 @@
   survData <- survData[complete.cases(survData),]
   
   #--- tabstatus
-  tabstatus <- regulonActivity$regstatus[rownames(survData), regs]
+  tabstatus <- regulonActivity$status[rownames(survData), regs]
   tabstatus <- data.frame(tabstatus)
   idx <- rowSums(tabstatus==0)>0
   if(excludeMid){
@@ -67,7 +67,7 @@
   survData <- survData[rownames(tabdiff),]
   
   #--- tabstatus
-  tabstatus <- regulonActivity$regstatus[rownames(survData), regs]
+  tabstatus <- regulonActivity$status[rownames(survData), regs]
   tabstatus <- data.frame(tabstatus)
   idx <- rowSums(tabstatus==0)>0
   if(excludeMid){
@@ -159,7 +159,7 @@
   tabdiff <- regulonActivity$dif[, regs]
   
   #--- tabstatus
-  tabstatus <- regulonActivity$regstatus[, regs]
+  tabstatus <- regulonActivity$status[, regs]
   tabstatus <- data.frame(tabstatus)
   idx <- rowSums(tabstatus==0)>0
   if(excludeMid){

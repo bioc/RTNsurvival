@@ -6,15 +6,14 @@
 \alias{tnsKM}
 \title{Kaplan-Meier analysis for TNS class objects}
 \usage{
-\S4method{tnsKM}{TNS}(tns, regs = NULL, nSections = 1,
-  verbose = TRUE)
+\S4method{tnsKM}{TNS}(tns, regs = NULL, sections = 1, verbose = TRUE)
 }
 \arguments{
 \item{tns}{A \linkS4class{TNS} object, which must have passed GSEA2 analysis.}
 
 \item{regs}{An optional string vector listing regulons to be tested.}
 
-\item{nSections}{A numeric value for sample stratification. The larger
+\item{sections}{A numeric value for sample stratification. The larger
 the number, the more subdivisions will be created for the Kaplan-Meier 
 analysis.}
 

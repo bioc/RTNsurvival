@@ -7,9 +7,10 @@
 \title{Plot regulon activity and categorical covariates}
 \usage{
 \S4method{tnsPlotCovariates}{TNS}(tns, regs = NULL, attribs = NULL,
-  fname = "covarplot", fpath = ".", plotpdf = FALSE,
-  plotbatch = FALSE, panelHeights = c(1, 1), width = 5.3,
-  height = 4, dummyEncode = TRUE, divs = NULL)
+  fname = "covarplot", fpath = ".", ylab = "Regulon activity (dES)",
+  xlab = "Samples", plotpdf = FALSE, plotbatch = FALSE,
+  panelHeights = c(1, 1), width = 5.3, height = 4,
+  dummyEncode = TRUE, divs = NULL)
 }
 \arguments{
 \item{tns}{A A \linkS4class{TNS} object.}
@@ -25,6 +26,10 @@ Alternatively, attributes can be grouped when provided within a list.}
 \item{fname}{A string. The name of the file in which the plot will be saved}
 
 \item{fpath}{A string. The path to the directory where the plot will be saved}
+
+\item{ylab}{A string. The label of the y-axis, describing what is represented.}
+
+\item{xlab}{A string. The label of the x-axis.}
 
 \item{plotpdf}{A logical value. If TRUE, a pdf file is created instead of 
 plotting to the graphics device.}

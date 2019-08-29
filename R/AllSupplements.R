@@ -4,7 +4,7 @@
 #' Internal function, used for sample stratification.
 #' 
 #' @param tns a \linkS4class{TNS} object, which must have passed GSEA2 analysis.
-#' @param nSections A numeric value for the stratification of the sample. The 
+#' @param sections A numeric value for the stratification of the sample. The 
 #' larger the number, the more subdivisions will be created for the Kaplan-Meier 
 #' analysis.
 #' @param center a logical value. If TRUE, numbers assigned to each group is
@@ -18,19 +18,19 @@
 #' @aliases tnsStratification
 #' @export
 #' 
-tnsStratification <- function(tns, nSections = 1, center = FALSE){
+tnsStratification <- function(tns, sections = 1, center = FALSE){
   
   #-- checks
   .tns.checks(tns, type = "TNS")
-  .tns.checks(nSections, type = "nSections")
+  .tns.checks(sections, type = "sections")
   .tns.checks(center, type = "center")
   
   #-- stratification
   para <- tnsGet(tns, what = "para")
   if(para$regulonActivity=="gsea2"){
-    tns <- .tns.stratification.gsea2(tns, nSections = nSections, center = center)
+    tns <- .tns.stratification.gsea2(tns, sections = sections, center = center)
   } else {
-    tns <- .tns.stratification.area(tns, nSections = nSections, center = center)
+    tns <- .tns.stratification.area(tns, sections = sections, center = center)
   }
   
   return(tns)
@@ -38,66 +38,66 @@ tnsStratification <- function(tns, nSections = 1, center = FALSE){
 }
 
 ##------------------------------------------------------------------------------
-.tns.stratification.gsea2 <- function(tns, nSections=1, center=TRUE){
-  regstatus <- sign(tns@results$regulonActivity$dif)
-  for (reg in colnames(regstatus)){
-    sq <- c(seq_len(nSections))
+.tns.stratification.gsea2 <- function(tns, sections=1, center=TRUE){
+  status <- sign(tns@results$regulonActivity$dif)
+  for (reg in colnames(status)){
+    sq <- c(seq_len(sections))
     pos <- tns@results$regulonActivity$pos[, reg]
     neg <- tns@results$regulonActivity$neg[, reg]
     dif <- tns@results$regulonActivity$dif[, reg]
     #---
-    regstatus[sign(pos) == sign(neg), reg] <- 0
-    tp <- regstatus[, reg]
+    status[sign(pos) == sign(neg), reg] <- 0
+    tp <- status[, reg]
     #---
     tp1 <- sort(dif[tp > 0], decreasing = TRUE)
-    tp1[] <- rep(sq, each = ceiling(length(tp1)/nSections), length.out = length(tp1))
-    regstatus[names(tp1), reg] <- tp1
+    tp1[] <- rep(sq, each = ceiling(length(tp1)/sections), length.out = length(tp1))
+    status[names(tp1), reg] <- tp1
     #---
     tp2 <- sort(dif[tp < 0], decreasing = TRUE)
-    tp2[] <- rep(sq + nSections + 1, each = ceiling(length(tp2)/nSections), length.out = length(tp2))
-    regstatus[names(tp2), reg] <- tp2
+    tp2[] <- rep(sq + sections + 1, each = ceiling(length(tp2)/sections), length.out = length(tp2))
+    status[names(tp2), reg] <- tp2
   }
-  mid <- nSections + 1
-  regstatus[regstatus == 0] <- mid
+  mid <- sections + 1
+  status[status == 0] <- mid
   #---
   if(center){
-    regstatus <- -1 * (regstatus - mid)
+    status <- -1 * (status - mid)
     mid <- 0
   }
   #---
-  tns@results$regulonActivity$regstatus <- regstatus
-  tns@results$regulonActivity$nSections <- nSections
+  tns@results$regulonActivity$status <- status
+  tns@results$regulonActivity$sections <- sections
   tns@results$regulonActivity$center <- mid
   return(tns)
 }
 ##------------------------------------------------------------------------------
-.tns.stratification.area <- function(tns, nSections=1, center=FALSE){
-  regstatus <- sign(tns@results$regulonActivity$dif)
-  for (reg in colnames(regstatus)){
-    sq <- c(seq_len(nSections))
+.tns.stratification.area <- function(tns, sections=1, center=FALSE){
+  status <- sign(tns@results$regulonActivity$dif)
+  for (reg in colnames(status)){
+    sq <- c(seq_len(sections))
     dif <- tns@results$regulonActivity$dif[, reg]
-    tp <- regstatus[, reg]
+    tp <- status[, reg]
     #---
     tp1 <- sort(dif[tp > 0], decreasing = TRUE)
-    tp1[] <- rep(sq, each = ceiling(length(tp1)/nSections), length.out = length(tp1))
-    regstatus[names(tp1), reg] <- tp1
+    tp1[] <- rep(sq, each = ceiling(length(tp1)/sections), length.out = length(tp1))
+    status[names(tp1), reg] <- tp1
     #---
     tp2 <- sort(dif[tp < 0], decreasing = TRUE)
-    tp2[] <- rep(sq + nSections + 1, each = ceiling(length(tp2)/nSections), length.out = length(tp2))
-    regstatus[names(tp2), reg] <- tp2
+    tp2[] <- rep(sq + sections + 1, each = ceiling(length(tp2)/sections), length.out = length(tp2))
+    status[names(tp2), reg] <- tp2
   }
   #--- obs. this stratification generates a 'midle' group 
   #--- only when there are samples with regulon activity assigned with 0 or NA
-  mid <- nSections + 1
-  regstatus[regstatus == 0 | is.na(regstatus)] <- mid
+  mid <- sections + 1
+  status[status == 0 | is.na(status)] <- mid
   #---
   if(center){
-    regstatus <- -1 * (regstatus - mid)
+    status <- -1 * (status - mid)
     mid <- 0
   }
   #---
-  tns@results$regulonActivity$regstatus <- regstatus
-  tns@results$regulonActivity$nSections <- nSections
+  tns@results$regulonActivity$status <- status
+  tns@results$regulonActivity$sections <- sections
   tns@results$regulonActivity$center <- mid
   return(tns)
 }
@@ -138,19 +138,19 @@ tnsStratification <- function(tns, nSections = 1, center = FALSE){
 .survstats <- function(regulonActivity, survData, reg, excludeMid){
   #-- get data
   tumours <- rev(sort(regulonActivity$dif[, reg], decreasing = TRUE))
-  regstatus <- regulonActivity$regstatus[names(tumours), reg]
-  nclass <- length(unique(regstatus))
+  status <- regulonActivity$status[names(tumours), reg]
+  nclass <- length(unique(status))
   #--- third panel plot (Kaplan-Meier)
   if (excludeMid && nclass%%2 != 0 && nclass > 1){
     rmc <- (nclass + 1)/2
-    idx <- regstatus != rmc
-    regstatus <- regstatus[idx]
+    idx <- status != rmc
+    status <- status[idx]
     tumours <- tumours[idx]
     nclass <- nclass - 1
   }
-  sections <- sort(unique(regstatus))
-  ddt <- survData[names(regstatus), ]
-  ddt$class <- regstatus
+  sections <- sort(unique(status))
+  ddt <- survData[names(status), ]
+  ddt$class <- status
   
   #---log-rank test
   survtb <- c(ChiSquare=NA, Pvalue=NA)
@@ -172,8 +172,8 @@ tnsStratification <- function(tns, nSections = 1, center = FALSE){
                       excludeMid, attribs, groups){
   #-- get data
   tumours <- rev(sort(regulonActivity$dif[, reg], decreasing = TRUE))
-  regstatus <- regulonActivity$regstatus[names(tumours), reg]
-  nclass <- length(unique(regstatus))
+  status <- regulonActivity$status[names(tumours), reg]
+  nclass <- length(unique(status))
   
   #-- get colors
   if (is.singleString(colorPalette)){
@@ -215,7 +215,7 @@ tnsStratification <- function(tns, nSections = 1, center = FALSE){
   
   #--- first plot (stratification)
   barplot(tumours, space = 0, xlim = c(-2, 2), axes = FALSE, cex.lab = 1.2, 
-          col = cols[as.factor(regstatus)], horiz = TRUE, border = NA, 
+          col = cols[as.factor(status)], horiz = TRUE, border = NA, 
           axisnames = FALSE, ylab = "Samples", xlab = "", 
           beside = TRUE, lwd = 1)
   mtext("Regulon activity (dES)", 1, adj = 0.5, line = 2, cex = 0.8)
@@ -225,7 +225,7 @@ tnsStratification <- function(tns, nSections = 1, center = FALSE){
   
   #--- second plot (attribs, optional)
   if(!is.null(attribs)){
-    attribs <- attribs[names(regstatus), ]
+    attribs <- attribs[names(status), ]
     par(mar = c(6.5, 0, 3, 0))
     image(t(attribs), col = c("grey95", "black"), axes = FALSE, ylim=c(-0.04,1.04))
     labs <- colnames(attribs)
@@ -247,12 +247,12 @@ tnsStratification <- function(tns, nSections = 1, center = FALSE){
   if (excludeMid && nclass%%2 != 0 && nclass > 1){
     rmc <- (nclass + 1)/2
     cols <- cols[-rmc]
-    idx <- regstatus != rmc
-    regstatus <- regstatus[idx]
+    idx <- status != rmc
+    status <- status[idx]
     tumours <- tumours[idx]
     nclass <- nclass - 1
   }
-  sections <- sort(unique(regstatus))
+  sections <- sort(unique(status))
   if (length(sections) < length(cols)) cols <- cols[-((length(cols) + 1)/2)]
   
   #-- km plot

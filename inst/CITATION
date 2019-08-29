@@ -1,5 +1,15 @@
 
 citEntry(entry = "Article",
+  author = "Groeneveld, Clarice S and Chagas, Vinicius S and Jones, Steven J M and Robertson, A Gordon and Ponder, Bruce A J and Meyer, Kerstin B and Castro, Mauro A A",
+  title = "RTNsurvival: an R/Bioconductor package for regulatory network survival analysis.",
+  journal = "Bioinformatics",
+  year = "2019",
+  pages = {btz229},
+  doi = "10.1093/bioinformatics/btz229",
+  textVersion = "Groeneveld CS, Chagas VS, Jones SJM, Robertson AG, Ponder BAJ, Meyer KB, Castro MAA. RTNsurvival: an R/Bioconductor package for regulatory network survival analysis. Bioinformatics, btz229, 2019."
+)
+
+citEntry(entry = "Article",
   author = "Mauro Castro and Ines de Santiago and Thomas Campbell and Courtney Vaughn and Theresa Hickey and Edith Ross and Wayne Tilley and Florian Markowetz and Bruce Ponder and Kerstin Meyer",
   title = "Regulators of genetic risk of breast cancer identified by integrative network analysis.",
   journal = "Nature Genetics",
@@ -9,5 +19,4 @@ citEntry(entry = "Article",
   doi = "10.1038/ng.3458",
   textVersion = "Castro MAA, de Santiago I, Campbell TM, ..., Meyer KB. Regulators of genetic risk of breast cancer identified by integrative network analysis. Nature Genetics, 48:12-21, 2016."
 )
-
 

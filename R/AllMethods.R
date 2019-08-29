@@ -154,7 +154,7 @@ setMethod("tnsGSEA2", "TNS", function(tns, ...) {
   tni <- tnsGet(tns, what = "TNI")
   regulonActivity <- tni.gsea2(tni, ...=...)
   tns <- tns.set(tns, regulonActivity, "regulonActivity")
-  tns <- tnsStratification(tns, nSections = 1, center = TRUE)
+  tns <- tnsStratification(tns, sections = 1, center = TRUE)
   return(tns)
 })
 
@@ -221,7 +221,7 @@ setMethod("tnsAREA3", "TNS", function(tns, ...){
 #'
 #' @param tns A \linkS4class{TNS} object, which must have passed GSEA2 analysis.
 #' @param regs An optional string vector listing regulons to be tested.
-#' @param nSections A numeric value for sample stratification. The larger
+#' @param sections A numeric value for sample stratification. The larger
 #' the number, the more subdivisions will be created for the Kaplan-Meier 
 #' analysis.
 #' @param verbose A logical value specifying to display detailed messages 
@@ -248,15 +248,15 @@ setMethod("tnsAREA3", "TNS", function(tns, ...){
 #' @export
 #' 
 setMethod("tnsKM", "TNS", 
-          function(tns, regs = NULL, nSections = 1, verbose = TRUE){
+          function(tns, regs = NULL, sections = 1, verbose = TRUE){
             #-- checks
             .tns.checks(tns, type = "Activity")
             .tns.checks(regs, type = "regs")
-            .tns.checks(nSections, type = "nSections")
+            .tns.checks(sections, type = "sections")
             .tns.checks(verbose, type = "verbose")
             
             #-- run stratification
-            tns <- tnsStratification(tns, nSections = nSections)
+            tns <- tnsStratification(tns, sections = sections)
             
             #-- get data and para
             regulonActivity <- tnsGet(tns, what = "regulonActivity")
@@ -267,7 +267,7 @@ setMethod("tnsKM", "TNS",
             pAdjustMethod <- para$pAdjustMethod
             
             #--- update para
-            para$nSections <- nSections
+            para$sections <- sections
             tns <- tns.set(tns, para, "para")
             
             #-- set endpoint
@@ -275,7 +275,7 @@ setMethod("tnsKM", "TNS",
             survData$time[survData$time > endpoint] <- endpoint
             
             #-- making reglist
-            reglist <- colnames(regulonActivity$regstatus)
+            reglist <- colnames(regulonActivity$status)
             if(!is.null(regs)) {
               if (!all(regs %in% reglist)) {
                 stop("all names in 'regs' should be listed in the slot 'results$regulonActivity' of the 'tns' object!")
@@ -283,10 +283,10 @@ setMethod("tnsKM", "TNS",
               reglist <- regs
             }
             
-            idx <- apply(regulonActivity$regstatus, 2, function(es) {
+            idx <- apply(regulonActivity$status, 2, function(es) {
               any(is.na(es))
             })
-            validregs <- colnames(regulonActivity$regstatus)[!idx]
+            validregs <- colnames(regulonActivity$status)[!idx]
             reglist <- reglist[reglist %in% validregs]
             
             if (verbose) {
@@ -313,7 +313,7 @@ setMethod("tnsKM", "TNS",
             #---
             resKM <- list(Table=kmTable, Fit=kmFit)
             tns <- tns.set(tns, resKM, "KM")
-            tns <- tnsStratification(tns, nSections = nSections, center = TRUE)
+            tns <- tnsStratification(tns, sections = sections, center = TRUE)
             return(tns)
           })
 
@@ -400,8 +400,8 @@ setMethod("tnsPlotKM", "TNS",
             para <- tnsGet(tns, what = "para")
             endpoint <- para$endpoint
             excludeMid <- para$excludeMid
-            nSections <-  para$nSections
-            tns <- tnsStratification(tns, nSections = nSections, center = FALSE)
+            sections <- para$sections
+            tns <- tnsStratification(tns, sections = sections, center = FALSE)
             
             #-- get data
             regulonActivity <- tnsGet(tns, what = "regulonActivity")
@@ -409,8 +409,8 @@ setMethod("tnsPlotKM", "TNS",
             kmTable <- tnsGet(tns, what = "kmTable")
             kmFit <- tnsGet(tns, what = "kmFit")
             
-            #-- check colorPalette with nSections
-            .tns.checks(colorPalette, nSections, type = "colorPalette")
+            #-- check colorPalette with sections
+            .tns.checks(colorPalette, sections, type = "colorPalette")
             
             #-- set endpoint
             survData$event[survData$time > endpoint] <- 0
@@ -550,7 +550,7 @@ setMethod("tnsCox", "TNS",
             #-- checks
             dif <- regulonActivity$dif
             if (excludeMid) {
-              dif[regulonActivity$regstatus == regulonActivity$center] <- NA
+              dif[regulonActivity$status == regulonActivity$center] <- NA
             }
             
             if(!is.null(regs)) {
@@ -941,7 +941,7 @@ setMethod("tnsKmInteraction", "TNS",
             .tns.checks(verbose, type = "verbose")
             
             #-- stratification
-            tns <- tnsStratification(tns, nSections = 1, center = TRUE)
+            tns <- tnsStratification(tns, sections = 1, center = TRUE)
             
             #-- get data
             regulonActivity <- tnsGet(tns, what = "regulonActivity")
@@ -1076,7 +1076,7 @@ setMethod("tnsPlotKmInteraction", "TNS",
             .tns.checks(plotpdf, type = "plotpdf")
             
             #-- stratification
-            tns <- tnsStratification(tns, nSections = 1, center = TRUE)
+            tns <- tnsStratification(tns, sections = 1, center = TRUE)
             
             #-- get data
             regulonActivity <- tnsGet(tns, what = "regulonActivity")
@@ -1093,7 +1093,7 @@ setMethod("tnsPlotKmInteraction", "TNS",
             regs <- unlist(strsplit(dualreg, split = "~", fixed=TRUE))
             
             #-- making reglist
-            if (!all(regs %in% colnames(regulonActivity$regstatus))) {
+            if (!all(regs %in% colnames(regulonActivity$status))) {
               stop("all names in 'dualreg' should be listed in the slot 'results$regulonActivity' of the 'tns' object!")
             }
             
@@ -1222,7 +1222,7 @@ setMethod("tnsCoxInteraction", "TNS",
             #-- checks
             dif <- regulonActivity$dif
             if (excludeMid) {
-              dif1[regulonActivity$regstatus == regulonActivity$center] <- NA
+              dif1[regulonActivity$status == regulonActivity$center] <- NA
             }
             
             #-- correct names for a 'formula'
@@ -1418,13 +1418,13 @@ setMethod("tnsPlotCoxInteraction", "TNS",
             
             #--- set colorPalette
             if(showdata){
-              tns <- tnsStratification(tns, nSections = 1, center = TRUE)
+              tns <- tnsStratification(tns, sections = 1, center = TRUE)
               regulonActivity <- tnsGet(tns, "regulonActivity")
               excludeMid <- tnsGet(tns, what = "para")$excludeMid
-              regstatus <- .getSurvplotCols(regulonActivity, regs, excludeMid, colorPalette)
+              status <- .getSurvplotCols(regulonActivity, regs, excludeMid, colorPalette)
               obdata <- stats::model.frame(model, drop.unused.levels=TRUE)
-              if(all(rownames(obdata) %in% names(regstatus$cols))){
-                datacols <- regstatus$cols[rownames(obdata)]
+              if(all(rownames(obdata) %in% names(status$cols))){
+                datacols <- status$cols[rownames(obdata)]
               } else {
                 stop("...unanticipated error occurred while processing this call!")
               }
