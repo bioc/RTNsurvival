@@ -356,9 +356,9 @@
       stop("'pal' must be a valid palette of RColorBrewer.", call. = FALSE)
     }
   } 
-  else if(type == "nSections"){
+  else if(type == "sections"){
     if (!(object1 %in% 1:3)) {
-      stop("'nSections' must be a number between 1 and 3.", call. = FALSE)
+      stop("'sections' must be a number between 1 and 3.", call. = FALSE)
     }
   } 
   else if(type == "center"){
@@ -420,7 +420,7 @@ is.singleNumber <- function(para){
 }
 is.singleInteger <- function(para){
   lg <- (is.integer(para) || is.numeric(para)) && length(para) == 1L && !is.na(para)
-  if (lg) lg <- (para/ceiling(para)) == 1
+  if(lg) lg <- ( (para+1) / (ceiling(para)+1) ) == 1
   return(lg)
 }
 is.singleString <- function(para){
@@ -434,7 +434,7 @@ all.binaryValues <- function(para){
 }
 all.integerValues <- function(para){
   lg <- (all(is.integer(para)) || all(is.numeric(para))) && !any(is.na(para))
-  if (lg) lg <- all((para/ceiling(para)) == 1)
+  if (lg) lg <- all(( (para+1) / (ceiling(para)+1) ) == 1)
   return(lg)
 }
 all.characterValues <- function(para){

@@ -44,14 +44,13 @@ hclust_semisupervised <- function(data, groups, dist_method = "euclidean",
     if (any(g_size == 1)) {
         # s_groups <- groups[g_size == 1]
         groups <- groups[g_size != 1]
-
     }
     
     #-- Make distance matrices
     if (dist_method %in% c("pearson", "spearman", "kendall")) {
-
         distlist <- lapply(groups, function(group) {
-            as.dist(1 - cor(t(data[group,]), method = dist_method))
+            as.dist(1 - cor(t(data[group,]), method = dist_method, 
+                            use="pairwise.complete.obs"))
         })
     } else {
         distlist <- lapply(groups, function (group) {
@@ -60,7 +59,6 @@ hclust_semisupervised <- function(data, groups, dist_method = "euclidean",
     }
     #-- Use hclust
     hclist <- lapply(distlist, hclust, method = hclust_method)
-    
     
     hc <- .merge_hclust(hclist)
     
