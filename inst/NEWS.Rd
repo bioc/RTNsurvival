@@ -2,6 +2,12 @@
 \title{RTNsurvival News}
 \encoding{UTF-8}
 
+\section{Version 1.10.0}{
+  \itemize{
+    \item Regular maintenance, stable release.
+  }
+}
+
 \section{Version 1.8.0}{
   \itemize{
     \item Improved workflow, integration with derivative packages (RTN / RTNsurvival).

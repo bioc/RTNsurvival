@@ -875,7 +875,7 @@ setMethod("tnsGet", "TNS", function(tns, what)
 #' stns <- tnsGSEA2(stns)
 #'
 #' # survival analysis for dual regulons
-#' # stns <- tnsInteraction(stns)
+#' # stns <- tnsInteraction(stns, stepFilter = FALSE)
 #' 
 #' @importFrom survival survdiff survfit coxph Surv
 #' @importFrom stats complete.cases
@@ -1566,9 +1566,9 @@ setMethod("tnsPlotGSEA2", "TNS",
             
             #-- make tna from scratch
             rtna <- tni2tna.preprocess(tni, phenotype = pheno, verbose = verbose)
-            rtna <- tna.gsea2(rtna, stepFilter = FALSE, pValueCutoff, 
-                              pAdjustMethod, tfs = regs, 
-                              verbose = verbose)
+            rtna <- tna.gsea2(rtna, pValueCutoff = pValueCutoff, 
+                              pAdjustMethod = pAdjustMethod, 
+                              tfs = regs, verbose = verbose)
             
             #-- plot
             tna.plot.gsea2(rtna, labPheno = aSample, tfs = regs, plotpdf = plotpdf, ...=...)

@@ -36,6 +36,6 @@ keycovar = c('Grade','Age'), time = 1, event = 2)
 stns <- tnsGSEA2(stns)
 
 # survival analysis for dual regulons
-# stns <- tnsInteraction(stns)
+# stns <- tnsInteraction(stns, stepFilter = FALSE)
 
 }

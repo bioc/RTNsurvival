@@ -15,8 +15,8 @@ This package provides classes and methods to perform survival analysis using tra
 \tabular{ll}{
 Package: \tab RTNsurvival\cr
 Type: \tab Package\cr
-Depends: \tab R (>= 3.3.0), methods\cr
-Imports: \tab RTN, survival, RColorBrewer\cr
+Depends: \tab R(>= 3.5), RTN(>= 2.6.3), RTNduals(>= 1.6.1), methods\cr
+Imports: \tab survival, RColorBrewer, grDevices, graphics, stats, utils, scales, data.table, egg, ggplot2, pheatmap, dunn.test\cr
 Suggests: \tab Fletcher2013b, knitr, rmarkdown, BiocStyle, RUnit, BiocGenerics\cr
 License: \tab Artistic-2.0\cr
 biocViews: \tab NetworkInference, NetworkEnrichment, GeneRegulation, GeneExpression, GraphAndNetwork, GeneSetEnrichment\cr
