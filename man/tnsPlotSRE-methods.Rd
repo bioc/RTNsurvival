@@ -6,9 +6,16 @@
 \alias{tnsPlotSRE}
 \title{Plot Subgroup Regulon Enrichment for TNS-class objects}
 \usage{
-\S4method{tnsPlotSRE}{TNS}(tns, subgroup = NULL, by = "nGroups",
-  nGroupsEnriched = 1, nTopEnriched = 10, breaks = seq(-1.5, 1.5,
-  0.1), markEnriched = FALSE, ...)
+\S4method{tnsPlotSRE}{TNS}(
+  tns,
+  subgroup = NULL,
+  by = "nGroups",
+  nGroupsEnriched = 1,
+  nTopEnriched = 10,
+  breaks = seq(-1.5, 1.5, 0.1),
+  markEnriched = FALSE,
+  ...
+)
 }
 \arguments{
 \item{tns}{A A \linkS4class{TNS} object.}

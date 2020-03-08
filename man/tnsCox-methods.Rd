@@ -6,8 +6,7 @@
 \alias{tnsCox}
 \title{Cox regression analysis for TNS class objects}
 \usage{
-\S4method{tnsCox}{TNS}(tns, regs = NULL, qqkeycovar = FALSE,
-  verbose = TRUE)
+\S4method{tnsCox}{TNS}(tns, regs = NULL, qqkeycovar = FALSE, verbose = TRUE)
 }
 \arguments{
 \item{tns}{A \linkS4class{TNS} object, which must have passed GSEA2 analysis.}

@@ -6,9 +6,19 @@
 \alias{tnsPlotGSEA2}
 \title{Plot 2-tailed GSEA for a sample from a TNS}
 \usage{
-\S4method{tnsPlotGSEA2}{TNS}(tns, aSample, regs = NULL, refsamp = NULL,
-  checklog = FALSE, ntop = NULL, pValueCutoff = 0.05,
-  pAdjustMethod = "BH", verbose = TRUE, plotpdf = FALSE, ...)
+\S4method{tnsPlotGSEA2}{TNS}(
+  tns,
+  aSample,
+  regs = NULL,
+  refsamp = NULL,
+  checklog = FALSE,
+  ntop = NULL,
+  pValueCutoff = 0.05,
+  pAdjustMethod = "BH",
+  verbose = TRUE,
+  plotpdf = FALSE,
+  ...
+)
 }
 \arguments{
 \item{tns}{A \linkS4class{TNS} object}

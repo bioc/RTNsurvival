@@ -6,8 +6,7 @@
 \alias{tnsKmInteraction}
 \title{Kaplan-Meier analysis for dual regulons}
 \usage{
-\S4method{tnsKmInteraction}{TNS}(tns, stepFilter = TRUE,
-  pValueCutoff = 0.05, verbose = TRUE)
+\S4method{tnsKmInteraction}{TNS}(tns, stepFilter = TRUE, pValueCutoff = 0.05, verbose = TRUE)
 }
 \arguments{
 \item{tns}{A \linkS4class{TNS} object, which must have passed GSEA2 analysis.}

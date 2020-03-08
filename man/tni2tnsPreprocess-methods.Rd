@@ -6,10 +6,18 @@
 \alias{tni2tnsPreprocess}
 \title{Preprocessing of TNS class objects}
 \usage{
-\S4method{tni2tnsPreprocess}{TNI}(tni, survivalData = NULL,
-  regulatoryElements = NULL, time = 1, event = 2, endpoint = NULL,
-  pAdjustMethod = "BH", keycovar = NULL, samples = NULL,
-  excludeMid = FALSE)
+\S4method{tni2tnsPreprocess}{TNI}(
+  tni,
+  survivalData = NULL,
+  regulatoryElements = NULL,
+  time = 1,
+  event = 2,
+  endpoint = NULL,
+  pAdjustMethod = "BH",
+  keycovar = NULL,
+  samples = NULL,
+  excludeMid = FALSE
+)
 }
 \arguments{
 \item{tni}{A \linkS4class{TNI} class, already processed with the same samples

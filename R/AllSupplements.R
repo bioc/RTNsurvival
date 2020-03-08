@@ -105,17 +105,16 @@ tnsStratification <- function(tns, sections = 1, center = FALSE){
 ##------------------------------------------------------------------------------
 .checkRegel <- function(tni, regel){
   #---check regel
-  tp <- sapply(colnames(tni@rowAnnotation), function(i) {
+  colid <- sapply(colnames(tni@rowAnnotation), function(i) {
     sum(regel%in%tni@rowAnnotation[, i])
   })
-  colid <- names(tp[which.max(tp)])
-  idx <- which(tni@rowAnnotation[, colid]%in%regel)
+  colid <- names(colid[which.max(colid)])
+  idx <- which(tni@rowAnnotation[[colid]]%in%regel)
   if(length(idx) < length(regel)) {
     warning("Not all names in 'regulatoryElements' are available in the 'TNI' rowAnnotation!",
             call.=FALSE)
   }
-  tp <- tni@rowAnnotation[idx,]
-  idx <- tni@regulatoryElements %in% rownames(tp)
+  idx <- tni@regulatoryElements %in% rownames(tni@rowAnnotation)[idx]
   if(sum(idx)==0){
     tp <- paste("NOTE: no names in 'regulatoryElements' has been used to call ",
                 "regulons in the provided 'TNI'!", sep="")

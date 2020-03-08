@@ -1522,6 +1522,8 @@ setMethod("tnsPlotGSEA2", "TNS",
             tni <- tnsGet(tns, what = "TNI")
             gexp <- tni.get(tni, what="gexp")
             regulatoryElements <- tni.get(tni, what="regulatoryElements")
+            targetElements <- tni.get(tni, what="targetElements")
+            gexp <- gexp[targetElements,,drop=FALSE]
             if (!is.null(regs)){
               nin <- length(regs)
               idx1 <- which(regulatoryElements%in%regs)

@@ -6,8 +6,7 @@
 \alias{tnsCoxInteraction}
 \title{Cox regression analysis for dual regulons}
 \usage{
-\S4method{tnsCoxInteraction}{TNS}(tns, stepFilter = TRUE,
-  pValueCutoff = 0.05, verbose = TRUE)
+\S4method{tnsCoxInteraction}{TNS}(tns, stepFilter = TRUE, pValueCutoff = 0.05, verbose = TRUE)
 }
 \arguments{
 \item{tns}{A \linkS4class{TNS} object with regulons used to compute the dual regulons.}

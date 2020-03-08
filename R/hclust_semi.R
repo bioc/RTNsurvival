@@ -42,7 +42,7 @@ hclust_semisupervised <- function(data, groups, dist_method = "euclidean",
     #-- Get groups with 1 member
     g_size <- sapply(groups, length)
     if (any(g_size == 1)) {
-        # s_groups <- groups[g_size == 1]
+        s_groups <- unlist(groups[g_size == 1])
         groups <- groups[g_size != 1]
     }
     
@@ -59,35 +59,40 @@ hclust_semisupervised <- function(data, groups, dist_method = "euclidean",
     }
     #-- Use hclust
     hclist <- lapply(distlist, hclust, method = hclust_method)
-    
     hc <- .merge_hclust(hclist)
     
-    # #-- Join groups with one element
-    # if(exists("s_groups")) {
-    #     s_groups <- unlist(s_groups)
-    #     s_hc <- hclust(dist(data[s_groups,]))
-    #     hc <- .merge_hclust(list(hc, s_hc))
-    #     data_reordered <- data[c(unlist(groups), s_groups),]
-    # } else {
-    #     data_reordered <- data[unlist(groups),]
-    # }
-    
-    data_reordered <- data[unlist(groups),]
-
-    return(list(data = data_reordered, 
-                hclust = hc))
+    #-- Join groups with one element
+    if(exists("s_groups")) {
+        if(length(s_groups)>1){
+          s_hc <- hclust(dist(data[s_groups,]))
+          hc <- .merge_hclust(list(hc, s_hc))
+        } else {
+          hc <- .add.singles(data, hc, s_groups)
+        }
+    }
+    data_reordered <- data[hc$labels,]
+    return(list(data = data_reordered, hclust = hc))
 }
-
+.add.singles <- function(data, hc, s_groups){
+    if(length(s_groups)>1){
+      s_hc <- hclust(dist(data[s_groups,]))
+      hc <- .merge_hclust(list(hc, s_hc))
+    } else {
+      dd <- as.integer(length(hc$labels)+1)
+      attributes(dd)<-list(label=s_groups,members=as.integer(1),height=0,leaf=TRUE)
+      class(dd)<-"dendrogram"
+      hc <- as.hclust(merge(as.dendrogram(hc), dd))
+    }
+  hc$height <- hc$height/max(hc$height)
+  return(hc)
+}
 .merge_hclust <- function(hclist) {
-    #-- Check
     if(!is.list(hclist)) {
         stop("`hclist` must be a list.")
     }
     if(!all(sapply(hclist, class) == "hclust")){
         stop("All objects in `hclist` must be `hclust-class`")
     }
-    
-    #-- Merge
     d <- hclist[[1]]
     d$height <- d$height/max(d$height)
     d <- as.dendrogram(d)
@@ -96,5 +101,7 @@ hclust_semisupervised <- function(data, groups, dist_method = "euclidean",
         dd$height <- dd$height/max(dd$height)
         d <- merge(d, as.dendrogram(dd))
     }
-    as.hclust(d)
+    hc <- as.hclust(d)
+    hc$height <- hc$height/max(hc$height)
+    return(hc)
 }

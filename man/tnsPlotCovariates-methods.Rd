@@ -6,11 +6,22 @@
 \alias{tnsPlotCovariates}
 \title{Plot regulon activity and categorical covariates}
 \usage{
-\S4method{tnsPlotCovariates}{TNS}(tns, regs = NULL, attribs = NULL,
-  fname = "covarplot", fpath = ".", ylab = "Regulon activity (dES)",
-  xlab = "Samples", plotpdf = FALSE, plotbatch = FALSE,
-  panelHeights = c(1, 1), width = 5.3, height = 4,
-  dummyEncode = TRUE, divs = NULL)
+\S4method{tnsPlotCovariates}{TNS}(
+  tns,
+  regs = NULL,
+  attribs = NULL,
+  fname = "covarplot",
+  fpath = ".",
+  ylab = "Regulon activity (dES)",
+  xlab = "Samples",
+  plotpdf = FALSE,
+  plotbatch = FALSE,
+  panelHeights = c(1, 1),
+  width = 5.3,
+  height = 4,
+  dummyEncode = TRUE,
+  divs = NULL
+)
 }
 \arguments{
 \item{tns}{A A \linkS4class{TNS} object.}

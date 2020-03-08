@@ -6,8 +6,14 @@
 \alias{tnsSRD}
 \title{Subgroup Regulon Difference for TNS-class objects}
 \usage{
-\S4method{tnsSRD}{TNS}(tns, subgroup, pValueCutoff = 0.05,
-  pAdjustMethod = "BH", regs = NULL, verbose = TRUE)
+\S4method{tnsSRD}{TNS}(
+  tns,
+  subgroup,
+  pValueCutoff = 0.05,
+  pAdjustMethod = "BH",
+  regs = NULL,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{tns}{A A \linkS4class{TNS} object.}

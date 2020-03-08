@@ -6,8 +6,7 @@
 \alias{tnsSRE}
 \title{Subgroup Regulon Enrichment for TNS-class objects}
 \usage{
-\S4method{tnsSRE}{TNS}(tns, subgroup, regs = NULL, pValueCutoff = 0.05,
-  pAdjustMethod = "BH")
+\S4method{tnsSRE}{TNS}(tns, subgroup, regs = NULL, pValueCutoff = 0.05, pAdjustMethod = "BH")
 }
 \arguments{
 \item{tns}{A A \linkS4class{TNS} object.}

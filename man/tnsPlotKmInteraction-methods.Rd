@@ -6,10 +6,18 @@
 \alias{tnsPlotKmInteraction}
 \title{Plot results from Kaplan-Meier analysis for dual regulons}
 \usage{
-\S4method{tnsPlotKmInteraction}{TNS}(tns, dualreg = NULL,
-  fname = "kmInteraction", fpath = ".", xlab = "Months",
-  ylab = "Survival probability", colorPalette = "bluered", width = 4,
-  height = 4, plotpdf = FALSE)
+\S4method{tnsPlotKmInteraction}{TNS}(
+  tns,
+  dualreg = NULL,
+  fname = "kmInteraction",
+  fpath = ".",
+  xlab = "Months",
+  ylab = "Survival probability",
+  colorPalette = "bluered",
+  width = 4,
+  height = 4,
+  plotpdf = FALSE
+)
 }
 \arguments{
 \item{tns}{A \linkS4class{TNS} object, which must have passed GSEA2 analysis.}

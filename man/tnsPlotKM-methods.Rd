@@ -6,11 +6,21 @@
 \alias{tnsPlotKM}
 \title{Kaplan-Meier plots for TNS class objects}
 \usage{
-\S4method{tnsPlotKM}{TNS}(tns, regs = NULL, attribs = NULL,
-  fname = "survplot", fpath = ".", xlab = "Months",
-  ylab = "Survival probability", colorPalette = "bluered",
-  plotpdf = FALSE, plotbatch = FALSE, width = 6.3, height = 3.6,
-  panelWidths = c(3, 2, 4))
+\S4method{tnsPlotKM}{TNS}(
+  tns,
+  regs = NULL,
+  attribs = NULL,
+  fname = "survplot",
+  fpath = ".",
+  xlab = "Months",
+  ylab = "Survival probability",
+  colorPalette = "bluered",
+  plotpdf = FALSE,
+  plotbatch = FALSE,
+  width = 6.3,
+  height = 3.6,
+  panelWidths = c(3, 2, 4)
+)
 }
 \arguments{
 \item{tns}{A \linkS4class{TNS} object, which must have passed GSEA2 analysis.}

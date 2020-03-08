@@ -4,8 +4,13 @@
 \alias{hclust_semisupervised}
 \title{Semi-supervised hierarchical clustering}
 \usage{
-hclust_semisupervised(data, groups, dist_method = "euclidean",
-  dist_p = 2, hclust_method = "complete")
+hclust_semisupervised(
+  data,
+  groups,
+  dist_method = "euclidean",
+  dist_p = 2,
+  hclust_method = "complete"
+)
 }
 \arguments{
 \item{data}{a data.frame to be clustered by rows}
