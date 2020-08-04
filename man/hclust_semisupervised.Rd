@@ -8,7 +8,6 @@ hclust_semisupervised(
   data,
   groups,
   dist_method = "euclidean",
-  dist_p = 2,
   hclust_method = "complete"
 )
 }
@@ -23,8 +22,6 @@ the end.}
 \item{dist_method}{a distance computation method. Must be one of "euclidean", 
 "maximum", "manhattan", "canberra", "binary", "minkowski", "pearson", "spearman"}
 
-\item{dist_p}{the power of the Minkowski distance, if chosen dist_method is "minkowski"}
-
 \item{hclust_method}{an agglomeration method. Should be a method supported by
 hclust, one of:  "ward.D", "ward.D2", "single", "complete", "average" (= UPGMA), 
 "mcquitty" (= WPGMA), "median" (= WPGMC) or "centroid" (= UPGMC).}
@@ -35,5 +32,23 @@ is the data, reordered so that the merged hclust object will work. The second
 element is the result of the semi-supervised hierarchical clustering.
 }
 \description{
-Semi-supervised hierarchical clustering by chosen groups with hclust.
+This function will run a semi-supervised hierarchical clustering, using
+prior knowledge to initialize clusters, and then unsupervised clustering on 
+the unlabeled data.
+}
+\examples{
+
+#--- add  unique labels to 'iris' data
+rownames(iris) <- paste(iris$Species, formatC(1:nrow(iris), width=3, flag="0"), sep="_")
+
+#--- unsupervised clustering
+hc <- hclust(dist(iris[, -5]))
+plot(hc, hang=-1, cex=0.5)
+
+#--- semi-supervised clustering
+hc_ssuper <- hclust_semisupervised(data = iris[, -5], 
+                                   groups = split(rownames(iris), iris$Species))
+plot(hc_ssuper, hang=-1, cex=0.5)
+
+
 }
