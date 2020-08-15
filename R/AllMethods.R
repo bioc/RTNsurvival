@@ -67,6 +67,10 @@ setMethod("tni2tnsPreprocess", "TNI",
                 stop(tp)
               }
             }
+            survivalData <- survivalData[samples,,drop=FALSE]
+            tni@gexp <- tni@gexp[,samples,drop=FALSE]
+            tni@colAnnotation <- tni@colAnnotation[samples,,drop=FALSE]
+            
             #-- other checks
             time <- .tns.checks(time, survivalData, type = "time")
             event <- .tns.checks(event, survivalData, type = "event")
@@ -81,7 +85,6 @@ setMethod("tni2tnsPreprocess", "TNI",
             survivalData <- survivalData[, -idx]
             survivalData <- cbind(te.data, survivalData)
             names(survivalData)[1:2] <- c("time", "event")
-            survivalData <- survivalData[samples, ]
             
             #-- set endpoint
             if(is.null(endpoint)){
@@ -152,7 +155,8 @@ setMethod("tnsGSEA2", "TNS", function(tns, ...) {
   
   #-- run gsea2 and update TNS
   tni <- tnsGet(tns, what = "TNI")
-  regulonActivity <- tni.gsea2(tni, ...=...)
+  tni <- tni.gsea2(tni, ...=...)
+  regulonActivity <- tni.get(tni, what = "regulonActivity")
   tns <- tns.set(tns, regulonActivity, "regulonActivity")
   tns <- tnsStratification(tns, sections = 1, center = TRUE)
   return(tns)
@@ -203,7 +207,8 @@ setMethod("tnsAREA3", "TNS", function(tns, ...){
   
   #-- run area3
   tni <- tnsGet(tns, what = "TNI")
-  regulonActivity <- tni.area3(tni, ...=...)
+  tni <- tni.area3(tni, ...=...)
+  regulonActivity <- tni.get(tni, what = "regulonActivity")
   
   #-- rescale to fit graphics
   regulonActivity$dif <- apply(regulonActivity$dif, 2, rescale, to=c(-1.8, 1.8))
