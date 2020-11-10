@@ -9,6 +9,8 @@
 #' analysis.
 #' @param center a logical value. If TRUE, numbers assigned to each group is
 #' centralized on regulon activity scale.
+#' @param undetermined.status a logical value. If TRUE, regulons assigned as 
+#' 'undetermined' will form a group.
 #' 
 #' @return An updated \linkS4class{TNS} object.
 #' @examples
@@ -18,7 +20,8 @@
 #' @aliases tnsStratification
 #' @export
 #' 
-tnsStratification <- function(tns, sections = 1, center = FALSE){
+tnsStratification <- function(tns, sections = 1, center = FALSE, 
+                              undetermined.status = TRUE){
   
   #-- checks
   .tns.checks(tns, type = "TNS")
@@ -28,7 +31,9 @@ tnsStratification <- function(tns, sections = 1, center = FALSE){
   #-- stratification
   para <- tnsGet(tns, what = "para")
   if(para$regulonActivity=="gsea2"){
-    tns <- .tns.stratification.gsea2(tns, sections = sections, center = center)
+    tns <- .tns.stratification.gsea2(tns, sections = sections, 
+                                     center = center, 
+                                     undetermined.status=undetermined.status)
   } else {
     tns <- .tns.stratification.area(tns, sections = sections, center = center)
   }
@@ -38,7 +43,8 @@ tnsStratification <- function(tns, sections = 1, center = FALSE){
 }
 
 ##------------------------------------------------------------------------------
-.tns.stratification.gsea2 <- function(tns, sections=1, center=TRUE){
+.tns.stratification.gsea2 <- function(tns, sections=1, center=TRUE, 
+                                      undetermined.status=TRUE){
   status <- sign(tns@results$regulonActivity$dif)
   for (reg in colnames(status)){
     sq <- c(seq_len(sections))
@@ -46,7 +52,7 @@ tnsStratification <- function(tns, sections = 1, center = FALSE){
     neg <- tns@results$regulonActivity$neg[, reg]
     dif <- tns@results$regulonActivity$dif[, reg]
     #---
-    status[sign(pos) == sign(neg), reg] <- 0
+    if(undetermined.status)status[sign(pos) == sign(neg), reg] <- 0
     tp <- status[, reg]
     #---
     tp1 <- sort(dif[tp > 0], decreasing = TRUE)
@@ -203,13 +209,13 @@ tnsStratification <- function(tns, sections = 1, center = FALSE){
   nms[length(nms)] <- np
   if(!is.null(attribs)){
     mt <- matrix(c(1,2,3), 1, 3)
-    mar = c(6.5, 5, 3, 0.7)
+    mar = c(7.5, 5, 3, 0.7)
   } else {
     mt <- matrix(c(1,1,2), 1, 3)
-    mar = c(6.5, 15, 3, 0)
+    mar = c(7.5, 15, 3, 0)
   }
   layout(mt, widths = panelWidths)
-  par(mgp = c(2.5, 0.4, 0), mar = mar)
+  par(mgp = c(2.5, 0.4, 0), mar = mar, cex=0.66)
   xlim <- range(tumours) + c(-0.5, 0.5)
   
   #--- first plot (stratification)
@@ -217,7 +223,7 @@ tnsStratification <- function(tns, sections = 1, center = FALSE){
           col = cols[as.factor(status)], horiz = TRUE, border = NA, 
           axisnames = FALSE, ylab = "Samples", xlab = "", 
           beside = TRUE, lwd = 1)
-  mtext("Regulon activity (dES)", 1, adj = 0.5, line = 2, cex = 0.8)
+  mtext("Regulon activity\n(dES)", 1, adj = 0.5, line = 3, cex = 0.8)
   mtext(reg, 3, adj = 0.1, line = -0.5, cex = 0.8)
   axis(2, at = nms, labels = nms, tcl = -0.2, las = 2, lwd = 1.8, cex.axis = 1.2)
   axis(1, tcl = -0.2, lwd = 1.8, cex.axis = 1.2)
@@ -225,7 +231,7 @@ tnsStratification <- function(tns, sections = 1, center = FALSE){
   #--- second plot (attribs, optional)
   if(!is.null(attribs)){
     attribs <- attribs[names(status), ]
-    par(mar = c(6.5, 0, 3, 0))
+    par(mar = c(7.5, 0, 3, 0))
     image(t(attribs), col = c("grey95", "black"), axes = FALSE, ylim=c(-0.04,1.04))
     labs <- colnames(attribs)
     axis(1, at = seq(0, 1, length.out = length(labs)), labels = labs, tcl = -0.2, 
@@ -255,12 +261,17 @@ tnsStratification <- function(tns, sections = 1, center = FALSE){
   if (length(sections) < length(cols)) cols <- cols[-((length(cols) + 1)/2)]
   
   #-- km plot
-  par(mar = c(6.5, 5, 3, 1))
-  plot(survft, col = cols, lwd = 1.8, axes = FALSE, cex.lab = 1.2, cex = 0.5, 
-       mark.time = TRUE, ylab = ylab, xlab = "")
-  mtext(xlab, 1, adj = 0.5, line = 2, cex = 0.8)
-  labs <- as.integer(seq(0, endpoint, length.out = 4))
+  par(mar = c(7.5, 5, 3, 1))
+  if(endpoint/3==round(endpoint/3)){
+    length.out=4
+  } else {
+    length.out=5
+  }
+  labs <- as.integer(seq(0, endpoint, length.out = length.out))
   if (!endpoint %in% labs) labs <- pretty(c(0, endpoint))
+  plot(survft, col = cols, lwd = 1.8, axes = FALSE, cex.lab = 1.2, cex = 0.5, 
+       mark.time = TRUE, ylab = ylab, xlab = "", xlim = range(labs))
+  mtext(xlab, 1, adj = 0.5, line = 2, cex = 0.8)
   axis(1, at = labs, labels = labs, tcl = -0.2, las = 1, lwd = 1.8, cex.axis = 1.2)
   axis(2, tcl = -0.2, las = 2, lwd = 1.8, cex.axis = 1.2)
   
@@ -405,11 +416,11 @@ pal3 <- function(nclass){
            xjust = 0.5, yjust = 0.5, bty = "n", cex = 0.65, pt.cex = 0.9)
   }
   
-  if (plotpdf){
-    tp1 <- c("NOTE: file '",fname,"' should be available either in the working directory or\n")
-    tp2 <- c("in a user's custom directory!\n")
-    message(tp1,tp2)
+  if(plotpdf){
     dev.off()
+    tp1 <- paste0("NOTE: file '",fname,"' should be available either in the working directory or\n")
+    tp2 <- c("in a user's custom directory!\n")
+    cat(tp1,tp2)
   }
   par(op)
 }

@@ -99,6 +99,26 @@ setMethod("tni2tnsPreprocess", "TNI",
             
             #-- status update
             object <- tns.set(object, what = "status")
+            
+            #-- Add regulonActivity if available
+            if (tni@status["Activity"]=="[x]"){
+              regulonActivity <- tni.get(tni, what = "regulonActivity")
+              regs <- tni@regulatoryElements
+              regs <- regs[names(regs)%in%colnames(regulonActivity$differential)]
+              regulonActivity$differential <- regulonActivity$differential[samples,names(regs)]
+              regulonActivity$positive <- regulonActivity$positive[samples,names(regs)]
+              regulonActivity$negative <- regulonActivity$negative[samples,names(regs)]
+              regulonActivity$regulatoryElements <- regs
+              if(max(abs(range(regulonActivity$dif)))>2){
+                regulonActivity$dif <- apply(regulonActivity$dif, 2, rescale, to=c(-1.8, 1.8))
+              }
+              para <- tnsGet(object, what = "para")
+              para$regulonActivity <- "gsea2"
+              object <- tns.set(object, regulonActivity, "regulonActivity")
+              object <- tns.set(object, para, "para")
+              object <- tnsStratification(object, sections = 1, center = TRUE)
+            }
+            
             return(object)
           })
 
@@ -229,6 +249,8 @@ setMethod("tnsAREA3", "TNS", function(tns, ...){
 #' @param sections A numeric value for sample stratification. The larger
 #' the number, the more subdivisions will be created for the Kaplan-Meier 
 #' analysis.
+#' @param undetermined.status a logical value. If TRUE, regulons assigned as 
+#' 'undetermined' will form a group.
 #' @param verbose A logical value specifying to display detailed messages 
 #' (when verbose=TRUE) or not (when verbose=FALSE).
 #' 
@@ -253,15 +275,18 @@ setMethod("tnsAREA3", "TNS", function(tns, ...){
 #' @export
 #' 
 setMethod("tnsKM", "TNS", 
-          function(tns, regs = NULL, sections = 1, verbose = TRUE){
+          function(tns, regs = NULL, sections = 1, 
+                   undetermined.status=TRUE, verbose = TRUE){
             #-- checks
             .tns.checks(tns, type = "Activity")
             .tns.checks(regs, type = "regs")
             .tns.checks(sections, type = "sections")
             .tns.checks(verbose, type = "verbose")
+            .tns.checks(undetermined.status, type = "undetermined.status")
             
             #-- run stratification
-            tns <- tnsStratification(tns, sections = sections)
+            tns <- tnsStratification(tns, sections = sections, 
+                                     undetermined.status=undetermined.status)
             
             #-- get data and para
             regulonActivity <- tnsGet(tns, what = "regulonActivity")
@@ -273,6 +298,7 @@ setMethod("tnsKM", "TNS",
             
             #--- update para
             para$sections <- sections
+            para$undetermined.status <- undetermined.status
             tns <- tns.set(tns, para, "para")
             
             #-- set endpoint
@@ -318,7 +344,8 @@ setMethod("tnsKM", "TNS",
             #---
             resKM <- list(Table=kmTable, Fit=kmFit)
             tns <- tns.set(tns, resKM, "KM")
-            tns <- tnsStratification(tns, sections = sections, center = TRUE)
+            tns <- tnsStratification(tns, sections = sections, center = TRUE,
+                                     undetermined.status=undetermined.status)
             return(tns)
           })
 
@@ -406,7 +433,9 @@ setMethod("tnsPlotKM", "TNS",
             endpoint <- para$endpoint
             excludeMid <- para$excludeMid
             sections <- para$sections
-            tns <- tnsStratification(tns, sections = sections, center = FALSE)
+            undetermined.status <- para$undetermined.status
+            tns <- tnsStratification(tns, sections = sections, center = FALSE,
+                                     undetermined.status=undetermined.status)
             
             #-- get data
             regulonActivity <- tnsGet(tns, what = "regulonActivity")
@@ -461,9 +490,9 @@ setMethod("tnsPlotKM", "TNS",
                           groups=groups)
               }
               dev.off()
-              tp1 <- c("NOTE: file '",fname,"' should be available either in the\n")
+              tp1 <- paste0("NOTE: file '",fname,"' should be available either in the\n")
               tp2 <- c("working directory or in a user's custom directory!\n")
-              message(tp1,tp2)
+              cat(tp1,tp2)
             } else {
               for(reg in reglist){
                 if(plotpdf){
@@ -487,11 +516,10 @@ setMethod("tnsPlotKM", "TNS",
                   tp2 <- c("working directory or in a user's custom directory!\n")
                 } else {
                   fname <- paste(fname,"_",reglist, ".pdf", sep = "")
-                  tp1 <- c("NOTE: file '",fname,
-                           "' should be available either in the\n")
+                  tp1 <- paste0("NOTE: file '",fname,"' should be available either in the\n")
                   tp2 <- c("working directory or in a user's custom directory!\n")
                 }
-                message(tp1,tp2)
+                cat(tp1,tp2)
               }
             }
           })
@@ -909,6 +937,7 @@ setMethod("tnsInteraction", "TNS",
 #' in the 'tnsKM' method (when stepFilter=TRUE) or not (when stepFilter=FALSE).
 #' @param pValueCutoff An numeric value. The p-value cutoff applied to the results
 #' from the previous steps of the analysis pipeline (when stepFilter=TRUE).
+#' 
 #' @param verbose A logical value specifying to display detailed messages 
 #' (when verbose=TRUE) or not (when verbose=FALSE).
 #' 
@@ -1090,10 +1119,6 @@ setMethod("tnsPlotKmInteraction", "TNS",
             endpoint <- para$endpoint
             excludeMid <- para$excludeMid
             
-            #-- set endpoint
-            survData$event[survData$time > endpoint] <- 0
-            survData$time[survData$time > endpoint] <- endpoint
-            
             #-- get regs
             regs <- unlist(strsplit(dualreg, split = "~", fixed=TRUE))
             
@@ -1113,10 +1138,9 @@ setMethod("tnsPlotKmInteraction", "TNS",
                            ylab=ylab, xlab=xlab, colorPalette=colorPalette)
             if(plotpdf){
               dev.off()
-              tp1 <- c("NOTE: file '",fname,
-                       "' should be available either in the\n")
+              tp1 <- paste0("NOTE: file '",fname,"' should be available either in the")
               tp2 <- c("working directory or in a user's custom directory!\n")
-              message(tp1,tp2)
+              cat(tp1,tp2)
             }
             
           })
@@ -1218,8 +1242,8 @@ setMethod("tnsCoxInteraction", "TNS",
               idx2 <- which(dualtb$reg2 %in% tns.regs)
               dualtb <- dualtb[intersect(idx1, idx2),,drop=FALSE]
               dualregs <- rownames(dualtb)
-              tp <- paste("Not all regulons have had enrichment scores computed.\n",
-                          "This is possibly due to 'minRegulonSize'. Regression being computed for only ", 
+              tp <- paste("Not all regulons have enrichment scores computed.\n",
+                          "This is possibly due to 'minRegulonSize'. Regression being computed for ", 
                           length(dualregs), " regulon pairs.", sep="")
               warning(tp, call. = FALSE)
             }
@@ -1580,9 +1604,9 @@ setMethod("tnsPlotGSEA2", "TNS",
             #-- plot
             tna.plot.gsea2(rtna, labPheno = aSample, tfs = regs, plotpdf = plotpdf, ...=...)
             if(verbose & plotpdf){
-              tp1 <- c("NOTE: 'PDF' file for '",aSample,"' should be available either in the\n")
+              tp1 <- paste0("NOTE: a PDF file for '",aSample,"' should be available either in the")
               tp2 <- c("working directory or in a user's custom directory!\n")
-              message(tp1,tp2)
+              cat(tp1,tp2)
             }
             
           })

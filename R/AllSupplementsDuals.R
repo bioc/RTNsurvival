@@ -58,13 +58,13 @@
                            excludeMid, ylab, xlab, colorPalette)
 {
   
+  #-- set endpoint
+  survData$event[survData$time > endpoint] <- 0
+  survData$time[survData$time > endpoint] <- endpoint
+  
   #--- survData
   survData <- survData[,c("time","event")]
   survData <- survData[complete.cases(survData),]
-  
-  #--- tabdiff
-  tabdiff <- regulonActivity$dif[rownames(survData), regs]
-  survData <- survData[rownames(tabdiff),]
   
   #--- tabstatus
   tabstatus <- regulonActivity$status[rownames(survData), regs]
@@ -117,16 +117,22 @@
   
   #--- adjusting graphical parameters
   op <- par(no.readonly=TRUE)
-  par(mar = c(4, 4, 2, 2), mgp = c(2, 0.4, 0), cex=1)
+  par(mar = c(4, 4, 2, 2), mgp = c(2, 0.4, 0), cex=0.66)
+  if(endpoint/3==round(endpoint/3)){
+    length.out=4
+  } else {
+    length.out=5
+  }
+  labs <- as.integer(seq(0, endpoint, length.out = length.out))
+  if (!endpoint %in% labs) labs <- pretty(c(0, endpoint))
   #-- survival analysis
   ddt <- survData[names(regstatusNum), ]
   ddt$class <- regstatusNum
   res1 <- survfit(Surv(time, event) ~ class, data = ddt)
-  plot(res1, col = cols, lwd = 1.8, axes = FALSE, cex = 0.5, mark.time = TRUE, ylab = "", xlab = "")
+  plot(res1, col = cols, lwd = 1.8, axes = FALSE, cex = 0.5,
+       mark.time = TRUE, ylab = "", xlab = "", xlim = range(labs))
   title(ylab = ylab, adj = 0.5, cex.lab = 1.2, mgp = c(2.2, 0.4, 0))
   title(xlab = xlab, adj = 0.5, cex.lab = 1.2, mgp = c(1.6, 0.4, 0))
-  labs <- as.integer(seq(0, endpoint, length.out = 4))
-  if (!endpoint %in% labs) labs <- pretty(c(0, endpoint))
   axis(1, at = labs, labels = labs, tcl = -0.2, las = 1, lwd = 1.8, cex.axis = 1.2)
   axis(2, tcl = -0.2, las = 2, lwd = 1.8, cex.axis = 1.2)
   #---log-rank test
@@ -136,15 +142,16 @@
   lrstats[] <- c(res2$chisq,pval)
   #---legends
   par(xpd=TRUE)
-  legs <- names(sections); legs[1] <- "undetermined"
-  legs <- paste(legs, " : ", res2$n, "(", res2$obs,")", sep = "")
+  legs <- names(sections)
+  if(!excludeMid)legs[1] <- "undetermined"
+  legs <- paste(legs, " : ", res2$n, " (", res2$obs,")", sep = "")
   legend("bottomleft", legend = rev(legs), col = rev(cols), bty = "n", pch = 15, title.adj = 0, adj = 0,
          title = paste(paste(regs, collapse = " | "), "\nregulon status",sep=""), inset = c(0.01,0),
          cex = 0.8, pt.cex = 1)
   pval <- paste("Logrank P: ", format(pval, digits = 3, scientific = TRUE))
-  legend("topright", cex = 0.8, legend = pval, bty = "n", inset = c(0,-0.05))
+  legend("topright", cex = 1, legend = pval, bty = "n", inset = c(0,-0.05))
   par(op)
-  return(lrstats)
+  invisible(lrstats)
 }
 .namesCorrect <- function(regs) {
   xregs <- gsub("-|\\+|\\.|:|\\*|,|;", "_", regs)
@@ -154,9 +161,6 @@
 
 ##------------------------------------------------------------------------------
 .getSurvplotCols <- function(regulonActivity, regs, excludeMid, colorPalette){
-  
-  #--- tabdiff
-  tabdiff <- regulonActivity$dif[, regs]
   
   #--- tabstatus
   tabstatus <- regulonActivity$status[, regs]

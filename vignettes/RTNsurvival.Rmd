@@ -90,7 +90,7 @@ rtns <- tnsCox(rtns)
 The `tnsKM` method generates a Kaplan-Meier plot, which consists of three panels put together: a ranked dES plot for the cohort, a status of key attributes plot (optional) and a Kaplan-Meier plot, showing survival curves for lower and higher dES samples (**Figure 2**).
 
 ```{r, eval=FALSE}
-rtns <- tnsKM(rtns)
+rtns <- tnsKM(rtns, sections = 2)
 tnsPlotKM(rtns, regs="FOXM1", attribs = list(c("ER+","ER-"),c("PR+","PR-"),c("G1","G2","G3"),"HT"))
 ```
 

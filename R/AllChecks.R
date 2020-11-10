@@ -413,6 +413,11 @@
       stop("`markEnriched` must be a single logical value.")
     }
   }
+  else if(type == "undetermined.status") {
+    if(!is.singleLogical(object1)) {
+      stop("`undetermined.status` must be a single logical value.")
+    }
+  }
   }
 
 is.singleNumber <- function(para){

@@ -4,7 +4,12 @@
 \alias{tnsStratification}
 \title{Sample stratification for a TNS object}
 \usage{
-tnsStratification(tns, sections = 1, center = FALSE)
+tnsStratification(
+  tns,
+  sections = 1,
+  center = FALSE,
+  undetermined.status = TRUE
+)
 }
 \arguments{
 \item{tns}{a \linkS4class{TNS} object, which must have passed GSEA2 analysis.}
@@ -15,6 +20,9 @@ analysis.}
 
 \item{center}{a logical value. If TRUE, numbers assigned to each group is
 centralized on regulon activity scale.}
+
+\item{undetermined.status}{a logical value. If TRUE, regulons assigned as 
+'undetermined' will form a group.}
 }
 \value{
 An updated \linkS4class{TNS} object.
