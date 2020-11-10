@@ -6,7 +6,13 @@
 \alias{tnsKM}
 \title{Kaplan-Meier analysis for TNS class objects}
 \usage{
-\S4method{tnsKM}{TNS}(tns, regs = NULL, sections = 1, verbose = TRUE)
+\S4method{tnsKM}{TNS}(
+  tns,
+  regs = NULL,
+  sections = 1,
+  undetermined.status = TRUE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{tns}{A \linkS4class{TNS} object, which must have passed GSEA2 analysis.}
@@ -16,6 +22,9 @@
 \item{sections}{A numeric value for sample stratification. The larger
 the number, the more subdivisions will be created for the Kaplan-Meier 
 analysis.}
+
+\item{undetermined.status}{a logical value. If TRUE, regulons assigned as 
+'undetermined' will form a group.}
 
 \item{verbose}{A logical value specifying to display detailed messages 
 (when verbose=TRUE) or not (when verbose=FALSE).}

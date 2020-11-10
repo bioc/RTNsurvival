@@ -240,8 +240,9 @@ setMethod("tnsPlotCovariates", "TNS",
                          plot = allPlots[[i]]$grid_plot, height = height, width = width)
                 }
               }
-              msg <- c("NOTE: file '",fname,"' should be available either in the working directory or in a user's custom directory!\n")
-              message(msg)
+              msg <- paste0("NOTE: file '",fname,"' should be available either in the working directory",
+                            " or in a user's custom directory!\n")
+              cat(msg)
               
             } else { #-- Plot to the graphics device
               for (i in 1:length(allPlots)) {
