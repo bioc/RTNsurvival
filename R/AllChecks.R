@@ -56,12 +56,30 @@
         stop("All strings in 'keycovar' must be colnames in 'survivalData'", 
              call. = FALSE)
       for (col in object1){
-        if (!is.numeric(object2[, col])) 
-          stop("All values in 'keycovar' columns must be numeric.", 
+        if (!is.numeric(object2[, col]) && !is.factor(object2[, col])) 
+          stop("All 'keycovar' columns must be numeric or factor.", 
                call. = FALSE)
       }
     }
-  } 
+  }
+  else if (type == "excludeAttribs"){
+    if (!is.null(object1)){
+      if(is.list(object1)) 
+        object1 <- unlist(object1)
+      if(!is.character(object1))
+        stop("'excludeAttribs' must be either a vector or a list of vectors, with character values!", 
+             call. = FALSE)
+      if(!all(object1 %in% colnames(object2))) 
+        stop("all 'excludeAttribs' must be listed in the 'survivalData' colnames, at the 'tns' object!", 
+             call. = FALSE)
+      bl <- sapply(object1, function(at){
+        all.binaryValues(object2[,at])
+      })
+      if(!all(bl))
+        stop("'excludeAttribs' values in the 'survivalData' must be binary values (0,1)!", 
+             call. = FALSE)
+    }
+  }
   else if (type == "samples"){
     if (is.null(object1)){
       object1 <- rownames(object2)
@@ -131,14 +149,36 @@
     if (!is.null(object1)){
       if(is.list(object1)) 
         object1 <- unlist(object1)
-      if(is.character(object1)){
-        if (!all(object1 %in% colnames(object2))) 
-          stop("all 'attribs' must be listed in the 'survivalData' colnames, at the 'tns' object!", 
-               call. = FALSE)
-      } else if (!all.integerValues(object1)){
-        stop("'attribs' must be either a vector or a list of vectors, with either integer values!", 
+      if(!is.character(object1))
+        stop("'attribs' must be either a vector or a list of vectors, with character values!", 
              call. = FALSE)
-      }
+      if(!all(object1 %in% colnames(object2))) 
+        stop("all 'attribs' must be listed in the 'survivalData' colnames, at the 'tns' object!", 
+             call. = FALSE)
+      bl <- sapply(object1, function(at){
+        all.binaryValues(object2[,at])
+      })
+      if(!all(bl))
+        stop("'attribs' values in the 'survivalData' must be binary values (0,1)!", 
+             call. = FALSE)
+    }
+  }
+  else if (type == "attribs.covars"){
+    if (!is.null(object1)){
+      if(is.list(object1)) 
+        object1 <- unlist(object1)
+      if(!is.character(object1))
+        stop("'attribs' must be either a vector or a list of vectors, with character values!", 
+             call. = FALSE)
+      if(!all(object1 %in% colnames(object2))) 
+        stop("all 'attribs' must be listed in the 'survivalData' colnames, at the 'tns' object!", 
+             call. = FALSE)
+      bl <- sapply(object1, function(at){
+        all.integerOrFactorOrNaValues(object2[,at])
+      })
+      if(!all(bl))
+        stop("'attribs' values in the 'survivalData' must be integer or factor!", 
+             call. = FALSE)
     }
   }
   else if (type == "colorPalette"){
@@ -175,6 +215,10 @@
   else if (type == "sortregs"){
     if (!is.singleLogical(object1)) 
       stop("'sortregs' must be logical value.", call. = FALSE)
+  } 
+  else if (type == "sortcovars"){
+    if (!is.singleLogical(object1)) 
+      stop("'sortcovars' must be logical value.", call. = FALSE)
   } 
   else if (type == "checklog"){
     if (!is.singleLogical(object1)) 
@@ -440,6 +484,11 @@ all.binaryValues <- function(para){
 all.integerValues <- function(para){
   lg <- (all(is.integer(para)) || all(is.numeric(para))) && !any(is.na(para))
   if (lg) lg <- all(( (para+1) / (ceiling(para)+1) ) == 1)
+  return(lg)
+}
+all.integerOrFactorOrNaValues <- function(para){
+  lg <- (all(is.integer(para)) || all(is.numeric(para)) || all(is.factor(para)) )
+  if (lg) lg <- all( ( (para+1) / (ceiling(para)+1) ) == 1, na.rm = T)
   return(lg)
 }
 all.characterValues <- function(para){

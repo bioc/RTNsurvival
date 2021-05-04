@@ -21,6 +21,11 @@
 #' @param samples An optional character vector listing samples to be analyzed.
 #' @param excludeMid A logical value. If TRUE, inconclusive dES values is not
 #' consired in the survival analysis.
+#' @param excludeAttribs A character vector of attributes listed in the column 
+#' names of the survivalData, indicating sample groups to be excluded from 
+#' the survival analysis. All attributes should be binary encoded.
+#' Available attributes can be checked by running 
+#' colnames(tnsGet(tns, "survivalData"))
 #' @return A preprocessed \linkS4class{TNS} class
 #' @examples
 #' # load survival data
@@ -45,7 +50,8 @@
 setMethod("tni2tnsPreprocess", "TNI", 
           function(tni, survivalData = NULL, regulatoryElements = NULL, 
                    time = 1, event = 2, endpoint = NULL, pAdjustMethod = "BH", 
-                   keycovar = NULL, samples = NULL, excludeMid = FALSE)
+                   keycovar = NULL, samples = NULL, excludeMid = FALSE,
+                   excludeAttribs = NULL)
           {
             #-- tni checks
             tni <- upgradeTNI(tni)
@@ -78,6 +84,7 @@ setMethod("tni2tnsPreprocess", "TNI",
             .tns.checks(endpoint, type = "endpoint")
             .tns.checks(excludeMid, type = "excludeMid")
             .tns.checks(pAdjustMethod, type = "pAdjustMethod")
+            .tns.checks(excludeAttribs, survivalData, type = "excludeAttribs")
             
             #-- reorganize survivalData
             idx <- c(time, event)
@@ -94,7 +101,8 @@ setMethod("tni2tnsPreprocess", "TNI",
             #-- making TNS object
             para <- list(time=time, event=event, endpoint=endpoint, 
                          keycovar=keycovar, excludeMid=excludeMid,
-                         pAdjustMethod=pAdjustMethod)
+                         pAdjustMethod=pAdjustMethod, 
+                         excludeAttribs=excludeAttribs)
             object <- new("TNS", TNI = tni, survivalData = survivalData, para = para)
             
             #-- status update
@@ -105,9 +113,9 @@ setMethod("tni2tnsPreprocess", "TNI",
               regulonActivity <- tni.get(tni, what = "regulonActivity")
               regs <- tni@regulatoryElements
               regs <- regs[names(regs)%in%colnames(regulonActivity$differential)]
-              regulonActivity$differential <- regulonActivity$differential[samples,names(regs)]
-              regulonActivity$positive <- regulonActivity$positive[samples,names(regs)]
-              regulonActivity$negative <- regulonActivity$negative[samples,names(regs)]
+              regulonActivity$differential <- regulonActivity$differential[samples,names(regs),drop=F]
+              regulonActivity$positive <- regulonActivity$positive[samples,names(regs),drop=F]
+              regulonActivity$negative <- regulonActivity$negative[samples,names(regs),drop=F]
               regulonActivity$regulatoryElements <- regs
               if(max(abs(range(regulonActivity$dif)))>2){
                 regulonActivity$dif <- apply(regulonActivity$dif, 2, rescale, to=c(-1.8, 1.8))
@@ -294,6 +302,7 @@ setMethod("tnsKM", "TNS",
             para <- tnsGet(tns, what = "para")
             endpoint <- para$endpoint
             excludeMid <- para$excludeMid
+            excludeAttribs <- para$excludeAttribs
             pAdjustMethod <- para$pAdjustMethod
             
             #--- update para
@@ -304,6 +313,12 @@ setMethod("tnsKM", "TNS",
             #-- set endpoint
             survData$event[survData$time > endpoint] <- 0
             survData$time[survData$time > endpoint] <- endpoint
+            
+            #-- exclude samples by 'excludeAttribs' parameter
+            if(!is.null(excludeAttribs)){
+              idx <- rowSums(survData[,excludeAttribs,drop=F])==0
+              survData <- survData[idx,]
+            }
             
             #-- making reglist
             reglist <- colnames(regulonActivity$status)
@@ -329,7 +344,8 @@ setMethod("tnsKM", "TNS",
             kmFit <- list()
             kmTable <- NULL
             for(reg in reglist){
-              res <- .survstats(regulonActivity, survData=survData, reg=reg, excludeMid=excludeMid)
+              res <- .survstats(regulonActivity, survData=survData, reg=reg, 
+                                excludeMid=excludeMid)
               kmFit[[reg]]$survfit <- res$survfit
               kmFit[[reg]]$survdiff <- res$survdiff
               kmTable <- rbind(kmTable,res$kmTable)
@@ -351,8 +367,9 @@ setMethod("tnsKM", "TNS",
 
 
 #' Kaplan-Meier plots for TNS class objects
-#'
-#' Makes a 2 or 3 panel plot for survival analysis. The first panel shows the
+#' 
+#' Plot results from the 'tnsKM' function. The 'tnsPlotKM' function makes 
+#' a 2 or 3 panel plot for survival analysis. The first panel shows the
 #' differential Enrichment score (dES) for all samples, ranked by dES 
 #' in their sections. The second (optional) panel shows the status of other 
 #' attributes which may be present in the survival data frame for all samples. 
@@ -366,6 +383,8 @@ setMethod("tnsKM", "TNS",
 #' plotting. Available attributes can be checked by running 
 #' colnames(tnsGet(tns, "survivalData")). Alternatively, attributes
 #' can be grouped when provided within a list.
+#' @param pValueCutoff An numeric value. The p-value cutoff applied to the results
+#' from the KM analysis pipeline.
 #' @param fname A string. The name of the file in which the plot will be saved
 #' @param fpath A string. The path to the directory where the plot will be saved
 #' @param xlab A string. The label for the x axis on the third panel. This should
@@ -405,7 +424,7 @@ setMethod("tnsKM", "TNS",
 #' @export
 #' 
 setMethod("tnsPlotKM", "TNS", 
-          function(tns, regs = NULL, attribs = NULL, 
+          function(tns, regs = NULL, attribs = NULL, pValueCutoff = 1, 
                    fname = "survplot", fpath = ".", xlab = "Months", 
                    ylab = "Survival probability", colorPalette = "bluered", 
                    plotpdf = FALSE, plotbatch = FALSE, width = 6.3, 
@@ -413,6 +432,7 @@ setMethod("tnsPlotKM", "TNS",
             #-- checks
             .tns.checks(tns, type = "Activity")
             .tns.checks(regs, type = "regs")
+            .tns.checks(pValueCutoff, type = "pValueCutoff")
             .tns.checks(attribs, tns@survivalData, type = "attribs")
             .tns.checks(fname, type = "fname")
             .tns.checks(fpath, type = "fpath")
@@ -432,6 +452,7 @@ setMethod("tnsPlotKM", "TNS",
             para <- tnsGet(tns, what = "para")
             endpoint <- para$endpoint
             excludeMid <- para$excludeMid
+            excludeAttribs <- para$excludeAttribs
             sections <- para$sections
             undetermined.status <- para$undetermined.status
             tns <- tnsStratification(tns, sections = sections, center = FALSE,
@@ -442,7 +463,17 @@ setMethod("tnsPlotKM", "TNS",
             survData <- tnsGet(tns, what = "survivalData")
             kmTable <- tnsGet(tns, what = "kmTable")
             kmFit <- tnsGet(tns, what = "kmFit")
+            kmTable <- kmTable[!is.na(kmTable$Adjusted.Pvalue),]
+            kmFit <- kmFit[rownames(kmTable)]
             
+            #-- filter data
+            kmTable <- kmTable[kmTable$Adjusted.Pvalue<pValueCutoff,]
+            kmFit <- kmFit[rownames(kmTable)]
+            if(nrow(kmTable)==0){
+              warning("No log-rank test passed pValueCutoff=",pValueCutoff)
+              return(invisible(NULL))
+            }
+              
             #-- check colorPalette with sections
             .tns.checks(colorPalette, sections, type = "colorPalette")
             
@@ -451,24 +482,49 @@ setMethod("tnsPlotKM", "TNS",
             survData$time[survData$time > endpoint] <- endpoint
             
             #-- get attribs
-            if (!is.null(attribs)) {
+            if(!is.null(attribs)) {
               if (is.list(attribs)) {
                 groups <- unlist(lapply(attribs, length))
                 idx <- unlist(attribs)
-                attribs <- as.matrix(survData[, idx])
+                mergeattribs <- as.matrix(survData[, idx])
               } else {
                 groups <- NULL
-                attribs <- as.matrix(survData[, attribs])
+                mergeattribs <- as.matrix(survData[, attribs])
               }
-              if (!all(attribs %in% c(0, 1, NA))) 
+              if (!all(mergeattribs %in% c(0, 1, NA))) 
                 stop("'attribs' variables should only include binary values!")
+            } else {
+              mergeattribs <- NULL
+            }
+            
+            #-- exclude samples by 'excludeAttribs' parameter
+            # if(!is.null(excludeAttribs) & !is.null(attribs)){
+            #   idx1 <- unlist(lapply(lapply(attribs, intersect, y=excludeAttribs), length))>0
+            #   idx1 <- unlist(attribs[idx1])
+            #   idx2 <- mergeattribs[,idx1]==1
+            #   mergeattribs[,idx1][idx2] <- 2
+            #   for(i in excludeAttribs){
+            #     idx <- mergeattribs[,i]==2
+            #     mergeattribs[idx,i] <- 3
+            #   }
+            # }
+            if(!is.null(excludeAttribs) & !is.null(attribs)){
+              for(i in excludeAttribs){
+                idx <- mergeattribs[,i]==1
+                mergeattribs[idx,i] <- 2
+                mergeattribs[!idx,i] <- 3
+              }
+              # idx1 <- rowSums(mergeattribs==2)>0
+              # idx2 <- mergeattribs[idx1,]==1
+              # mergeattribs[idx1,][idx2] <- 2
             }
             
             #-- making reglist
             reglist <- kmTable$Regulons
             if(!is.null(regs)) {
               if (!all(regs %in% reglist)) {
-                stop("all names in 'regs' should be listed in the slot 'results$regulonActivity' of the 'tns' object!")
+                stop("all names in 'regs' should be listed in the slot 
+                     'results$regulonActivity' of the 'tns' object!")
               }
               reglist <- regs
             }
@@ -486,7 +542,7 @@ setMethod("tnsPlotKM", "TNS",
                 survft <- kmFit[[reg]]$survfit
                 .survplot(regulonActivity, kmtb=kmtb, survdf=survdf, survft=survft, reg=reg, 
                           endpoint=endpoint, xlab=xlab, ylab=ylab, colorPalette=colorPalette, 
-                          panelWidths=panelWidths, excludeMid=excludeMid, attribs=attribs, 
+                          panelWidths=panelWidths, excludeMid=excludeMid, attribs=mergeattribs, 
                           groups=groups)
               }
               dev.off()
@@ -504,7 +560,7 @@ setMethod("tnsPlotKM", "TNS",
                 survft <- kmFit[[reg]]$survfit
                 .survplot(regulonActivity, kmtb=kmtb, survdf=survdf, survft=survft, reg=reg, 
                           endpoint=endpoint, xlab=xlab, ylab=ylab, colorPalette=colorPalette, 
-                          panelWidths=panelWidths, excludeMid=excludeMid, attribs=attribs, 
+                          panelWidths=panelWidths, excludeMid=excludeMid, attribs=mergeattribs, 
                           groups=groups)
                 if (plotpdf) dev.off()
               }
@@ -551,7 +607,7 @@ setMethod("tnsPlotKM", "TNS",
 #' tnsGet(stns, "coxTable")
 #' 
 #' @docType methods
-#' @importFrom stats p.adjust
+#' @importFrom stats p.adjust setNames
 #' @rdname tnsCox-methods
 #' @aliases tnsCox
 #' @export
@@ -680,20 +736,42 @@ setMethod("tnsCox", "TNS",
             })
             coxcoefs <- t(coxcoefs)
             coxTable <- cbind(coxcoefs,coxprobs)
+            colnames(coxTable) <- c("HR","Lower95","Upper95","Pvalue")
             
             #--- add keycovars to coxTable
             if(!is.null(keycovar)){
-              idx <- which.max(coxTable[, 1])
+              idx <- which.min(coxTable[, 1])
               rg <- rownames(coxTable)[idx]
               cxmd <- coxFit[[rg]]
+              #---
               resref <- summary(cxmd, conf.int = 1-ci)
-              ci <- resref$conf.int[,c(1,3:4)]
+              cii <- resref$conf.int[,c(1,3:4)]
               pr <- resref$coefficients[,c("Pr(>|z|)")]
-              resref <- cbind(ci,pr)
-              coxTable <- rbind(resref[-nrow(resref),], coxTable)
-              rownames(coxTable)[1:length(keycovar)] <- keycovar
+              resref <- cbind(cii,pr)
+              resref <- resref[-nrow(resref),,drop=FALSE]
+              resref <- data.frame(resref)
+              colnames(resref) <- c("HR","Lower95","Upper95","Pvalue")
+              #---
+              l <- cxmd$xlevels
+              l <- setNames(unlist(l, use.names=F),rep(names(l), lengths(l)))
+              lvs <- paste0(names(l),l)
+              names(lvs) <- names(l)
+              #---
+              coxKeycovar <- rownames(resref)
+              coxKeycovar <- setNames(coxKeycovar,coxKeycovar)
+              coxKeycovar <- c(coxKeycovar[!coxKeycovar%in%lvs],lvs)
+              #---
+              ord <- match(names(coxKeycovar),keycovar)
+              coxKeycovar <- coxKeycovar[sort.list(ord)]
+              resref <- resref[coxKeycovar,]
+              rownames(resref) <- coxKeycovar
+              resref$HR[is.na(resref$HR)] <- 1
+              resref$Lower95[is.na(resref$Lower95)] <- 1
+              resref$Upper95[is.na(resref$Upper95)] <- 1
+              coxTable <- rbind(resref, coxTable)
+            } else {
+              coxKeycovar <- NULL
             }
-            colnames(coxTable) <- c("HR","Lower95","Upper95","Pvalue")
             
             #--- add original symbols to rownames
             idx <- match(names(regs), rownames(coxTable))
@@ -703,32 +781,32 @@ setMethod("tnsCox", "TNS",
             
             #--- adjust pvalues and assign significant results
             coxTable$Adjusted.Pvalue <- p.adjust(coxTable$Pvalue, method = pAdjustMethod)
-            coxTable <- coxTable[sort.list(coxTable[,"Pvalue"]),, drop=FALSE]
+            # coxTable <- coxTable[sort.list(coxTable[,"Pvalue"]),, drop=FALSE]
             
             #--- return
-            res <- list(Table=coxTable, Fit=coxFit)
+            res <- list(Table=coxTable, Fit=coxFit, coxKeycovar=coxKeycovar)
             tns <- tns.set(tns, res, "Cox")
             return(tns)
             
           })
 
-
-
 #' Cox plots for TNS class objects
 #'
-#' Run Cox multivariate regression for regulons and key covariables.
+#' Plot results from the 'tnsCox' function.
 #'
 #' @param tns A \linkS4class{TNS} object, which must have passed GSEA2 analysis.
 #' @param regs An optional string vector specifying regulons to make the plot.
 #' @param fname A string. The name of the PDF file which will contain the plot.
+#' @param pValueCutoff An numeric value. The p-value cutoff applied to the results
+#' from the Cox analysis pipeline.
 #' @param fpath A string. The directory where the file will be saved.
 #' @param ylab A string. The label of the y-axis, describing what is represented.
 #' @param xlab A string. The label of the x-axis.
 #' @param width A numeric value. The width of the plot.
 #' @param height A numeric value. The height of the plot.
 #' @param xlim A vector with 2 values indicating lowest and highest HR values.
-#' @param sortregs A logical value. If TRUE, regulons are sorted from most 
-#' negatively associated with hazard to most positively associated with hazard.
+#' @param sortregs A logical value. If TRUE, regulons are sorted from most negatively 
+#' associatedwith hazard to most positively associated with hazard.
 #' @param plotpdf A logical value.
 #' @return A Cox hazard model plot and statistics.
 #' @examples
@@ -751,14 +829,15 @@ setMethod("tnsCox", "TNS",
 #' @export
 #' 
 setMethod("tnsPlotCox", "TNS", 
-          function(tns, regs = NULL, fname = "coxplot", 
+          function(tns, regs = NULL, pValueCutoff = 1, fname = "coxplot", 
                    fpath = ".", ylab = "Regulons and other covariates", 
                    xlab = "Hazard Ratio (95% CI)", width = 5, height = 5, 
-                   xlim = c(0.3, 3), sortregs = TRUE, plotpdf = FALSE){
+                   xlim = c(0.3, 3),  sortregs = TRUE, plotpdf = FALSE){
             
             #-- checks
             .tns.checks(tns, type = "Activity")
             .tns.checks(regs, type = "regs")
+            .tns.checks(pValueCutoff, type = "pValueCutoff")
             .tns.checks(fname, type = "fname")
             .tns.checks(fpath, type = "fpath")
             .tns.checks(ylab, type = "ylab")
@@ -776,29 +855,37 @@ setMethod("tnsPlotCox", "TNS",
             #-- gets
             coxTable <- tns@results$Cox$Table
             para <- tnsGet(tns, what = "para")
-            keycovar <- para$keycovar
+            coxKeycovar <- tns@results$Cox$coxKeycovar
             
             if(!is.null(regs)){
-              if (any(regs %in% keycovar)) {
+              if (any(regs %in% coxKeycovar)) {
                 stop("'regs' should not be listed in 'keycovar'!")
               }
               if (!all(regs %in% coxTable$Regulons)) {
                 stop("All 'regs' should be listed in the 'coxTable', please see 'tnsGet' function!")
               }
-              idx <- coxTable$Regulons %in% c(keycovar,regs)
+              idx <- coxTable$Regulons %in% c(coxKeycovar,regs)
               coxTable <- coxTable[idx, ]
             } else {
-              regs <- setdiff(coxTable$Regulons,keycovar)
+              regs <- setdiff(coxTable$Regulons,coxKeycovar)
             }
             
             #--- sort coxTable
-            coxTable <- coxTable[sort.list(coxTable$HR, decreasing = T),]
-            idx <- which(coxTable$Regulons%in%keycovar)
-            if(length(idx)>0)
-              coxTable <- rbind(coxTable[-idx,],coxTable[idx,])
+            if(sortregs)
+              coxTable <- coxTable[sort.list(coxTable$HR, decreasing = T),]
+            idx <- which(coxTable$Regulons%in%coxKeycovar)
+            if(length(idx)>0){
+              ct <- coxTable[-idx,]
+              ct <- ct[ct$Adjusted.Pvalue<pValueCutoff,]
+              coxTable <- rbind(ct,coxTable[rev(coxKeycovar),])  
+            } else {
+              coxTable <- coxTable[coxTable$Adjusted.Pvalue<pValueCutoff,] 
+            }
+            if(nrow(coxTable)==0)
+              stop("No log-rank test passed pValueCutoff=",pValueCutoff)
             
             #--- plot
-            .plotCox(coxTable, regs = regs, keycovar = keycovar, fpath = fpath, 
+            .plotCox(coxTable, regs = regs, keycovar = coxKeycovar, fpath = fpath, 
                      fname = fname, width = width, height = height, xlim = xlim, 
                      xlab = xlab, ylab = ylab, plotpdf = plotpdf)
             

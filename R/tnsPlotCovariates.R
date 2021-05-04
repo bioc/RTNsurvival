@@ -74,7 +74,7 @@ setMethod("tnsPlotCovariates", "TNS",
             #-- Parameter checks
             .tns.checks(tns, type = "Activity")
             .tns.checks(regs, type = "regs")
-            .tns.checks(attribs, tns@survivalData, type = "attribs")
+            .tns.checks(attribs, tns@survivalData, type = "attribs.covars")
             .tns.checks(fname, type = "fname")
             .tns.checks(fpath, type = "fpath")
             .tns.checks(ylab, type = "ylab")
@@ -206,6 +206,7 @@ setMethod("tnsPlotCovariates", "TNS",
             attrib_names <- colnames(all_attribs)
             
             #-- Plot covars
+            plotData[is.na(plotData)] <-0
             allPlots <- lapply(regs, ggPlotCovariates, plotData, 
                                attrib_names, panelHeights, dummyEncode, 
                                divs, xlab, ylab)

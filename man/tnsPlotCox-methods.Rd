@@ -9,6 +9,7 @@
 \S4method{tnsPlotCox}{TNS}(
   tns,
   regs = NULL,
+  pValueCutoff = 1,
   fname = "coxplot",
   fpath = ".",
   ylab = "Regulons and other covariates",
@@ -25,6 +26,9 @@
 
 \item{regs}{An optional string vector specifying regulons to make the plot.}
 
+\item{pValueCutoff}{An numeric value. The p-value cutoff applied to the results
+from the Cox analysis pipeline.}
+
 \item{fname}{A string. The name of the PDF file which will contain the plot.}
 
 \item{fpath}{A string. The directory where the file will be saved.}
@@ -39,8 +43,8 @@
 
 \item{xlim}{A vector with 2 values indicating lowest and highest HR values.}
 
-\item{sortregs}{A logical value. If TRUE, regulons are sorted from most 
-negatively associated with hazard to most positively associated with hazard.}
+\item{sortregs}{A logical value. If TRUE, regulons are sorted from most negatively 
+associatedwith hazard to most positively associated with hazard.}
 
 \item{plotpdf}{A logical value.}
 }
@@ -48,7 +52,7 @@ negatively associated with hazard to most positively associated with hazard.}
 A Cox hazard model plot and statistics.
 }
 \description{
-Run Cox multivariate regression for regulons and key covariables.
+Plot results from the 'tnsCox' function.
 }
 \examples{
 # load survival data

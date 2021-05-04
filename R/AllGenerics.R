@@ -2,7 +2,8 @@
 setGeneric("tni2tnsPreprocess", 
            function(tni, survivalData = NULL, regulatoryElements = NULL, 
                     time = 1, event = 2, endpoint = NULL, pAdjustMethod = "BH", 
-                    keycovar = NULL, samples = NULL, excludeMid = FALSE) 
+                    keycovar = NULL, samples = NULL, excludeMid = FALSE, 
+                    excludeAttribs=NULL) 
              standardGeneric("tni2tnsPreprocess"), package = "RTNsurvival")
 
 setGeneric("tnsGSEA2", 
@@ -19,10 +20,11 @@ setGeneric("tnsKM",
              standardGeneric("tnsKM"), package = "RTNsurvival")
 
 setGeneric("tnsPlotKM", 
-           function(tns, regs = NULL, attribs = NULL, fname = "survplot", 
-                    fpath = ".", xlab = "Months", ylab = "Survival probability", 
-                    colorPalette = "bluered", plotpdf = FALSE, plotbatch = FALSE, 
-                    width = 6.3, height = 3.6, panelWidths = c(3, 2, 4)) 
+           function(tns, regs = NULL, attribs = NULL, pValueCutoff = 1, 
+                    fname = "survplot", fpath = ".", xlab = "Months", 
+                    ylab = "Survival probability", colorPalette = "bluered", 
+                    plotpdf = FALSE, plotbatch = FALSE, width = 6.3, 
+                    height = 3.6, panelWidths = c(3, 2, 4)) 
              standardGeneric("tnsPlotKM"), package = "RTNsurvival")
 
 setGeneric("tnsCox", 
@@ -30,11 +32,11 @@ setGeneric("tnsCox",
              standardGeneric("tnsCox"), package = "RTNsurvival")
 
 setGeneric("tnsPlotCox", 
-           function(tns, regs = NULL, fname = "coxplot", 
+           function(tns, regs = NULL, pValueCutoff = 1, fname = "coxplot", 
                     fpath = ".", ylab = "Regulons and other covariates", 
                     xlab = "Hazard Ratio (95% CI)", width = 5, 
-                    height = 5, xlim = c(0.3, 3), 
-                    sortregs = TRUE, plotpdf = FALSE) 
+                    height = 5, xlim = c(0.3, 3), sortregs = TRUE, 
+                    plotpdf = FALSE) 
              standardGeneric("tnsPlotCox"), package = "RTNsurvival")
 
 setGeneric("tnsGet", 

@@ -134,7 +134,8 @@ tnsStratification <- function(tns, sections = 1, center = FALSE,
   if(length(regel)<2){
     tp <- paste("NOTE: at least two valid names in 'regulatoryElements'", 
                 " are required to call dual regulons!", sep="")
-    stop(tp, call.=FALSE)
+    tp <- c(tp, "\n...in the preprocess checks, only '", names(regel),"' was valid!")
+    warning(tp, call.=FALSE)
   }
   return (regel)
 }
@@ -156,12 +157,19 @@ tnsStratification <- function(tns, sections = 1, center = FALSE,
   sections <- sort(unique(status))
   ddt <- survData[names(status), ]
   ddt$class <- status
+  ddt <- ddt[,c("time","event","class")]
+  ddt <- ddt[complete.cases(ddt),]
   
   #---log-rank test
   survtb <- c(ChiSquare=NA, Pvalue=NA)
   survdf <- NA
   survft <- NA
-  if(nclass > 1){
+  
+  #--- checks
+  ck1 <- nrow(ddt)>nclass && length(table(ddt$class))==nclass
+  ck2 <- nclass>2
+  ck3 <- nclass==2 && min(table(ddt$class))>=3
+  if( (ck1&&ck2) || (ck1&&ck3) ){
     survft <- survfit(Surv(time, event) ~ class, data = ddt)
     survdf <- survdiff(Surv(time, event) ~ class, data = ddt)
     pval <- 1 - pchisq(survdf$chisq, length(survdf$n) - 1)
@@ -232,7 +240,12 @@ tnsStratification <- function(tns, sections = 1, center = FALSE,
   if(!is.null(attribs)){
     attribs <- attribs[names(status), ]
     par(mar = c(7.5, 0, 3, 0))
-    image(t(attribs), col = c("grey95", "black"), axes = FALSE, ylim=c(-0.04,1.04))
+    if(any(attribs==2)){
+      tcols = c("grey97", "black","#54278f","#dadaeb")
+    } else {
+      tcols = c("grey96", "black")
+    }
+    image(t(attribs), col = tcols, axes = FALSE, ylim=c(-0.04,1.04))
     labs <- colnames(attribs)
     axis(1, at = seq(0, 1, length.out = length(labs)), labels = labs, tcl = -0.2, 
          las = 2, lwd = 1.8, cex.axis = 0.8)
@@ -377,8 +390,8 @@ pal3 <- function(nclass){
     leg1 <- c("associated, HR<1", "associated, HR>1","not associated")
     if(ylab=="Regulons and other covariates") ylab <- "Regulons"
   } else {
-    pal <- c("black", "#008080ff", "grey60", "#d45500ff")
-    leg1 <- c("other covariates", "associated, HR<1", "not associated","associated, HR>1")
+    pal <- c("#008080ff", "grey60", "#d45500ff", "black")
+    leg1 <- c("associated, HR<1", "not associated", "associated, HR>1","other covariates")
   }
   
   #---
@@ -400,7 +413,7 @@ pal3 <- function(nclass){
   segments(xlim[1], nIN:nOUT, coxtb[, "Lower95"], col = "grey85", lwd = 1.5, lty = "21", lend = 2)
   lines(x = c(1, 1), y = c(1, nOUT + 1), lwd = 1.5, col = "grey60", lty = "21", lend = 2)
   segments(coxtb[, "Lower95"], nIN:nOUT, coxtb[, "Upper95"], col = cols, lwd = 1.5)
-  points(y = nIN:nOUT, x = coxtb[, "HR"], pch = 18, cex = 1.2, lwd = 1, col = cols)
+  points(y = nIN:nOUT, x = coxtb[, "HR"], pch = 18, cex = 1.35, lwd = 1, col = cols)
   axis(3, lwd = 2, cex.axis = 1.2, tck = -0.02, labels = xlabs$labs, at = xlabs$at)
   mtext(xlab, side = 3, line = 1.5, cex = 1.2)
   mtext(ylab, side = 2, line = 1 + 3 * len, cex = 1.2, adj = 0.6)
@@ -409,11 +422,11 @@ pal3 <- function(nclass){
   par(xpd = TRUE)
   if(is.null(keycovar)){
     legend(y = 0.5, x = 1, legend = leg1, col = pal[c(1,3,2)], pch = 18, lwd = 1.2, 
-           xjust = 0.5, horiz=T, yjust = 0.5, bty = "n", cex = 0.65, pt.cex = 0.9, 
+           xjust = 0.5, horiz=T, yjust = 0.5, bty = "n", cex = 0.75, pt.cex = 1.1, 
            x.intersp=0.5)
   } else {
     legend(y = 0, x = 1, legend = leg1, ncol = 2, col = pal, pch = 18, lwd = 1.2, 
-           xjust = 0.5, yjust = 0.5, bty = "n", cex = 0.65, pt.cex = 0.9)
+           xjust = 0.5, yjust = 0.5, bty = "n", cex = 0.75, pt.cex = 1.1)
   }
   
   if(plotpdf){

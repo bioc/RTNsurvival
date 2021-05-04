@@ -2,6 +2,18 @@
 \title{RTNsurvival News}
 \encoding{UTF-8}
 
+\section{Version 1.16.0}{
+  \itemize{
+    \item Regular maintenance, stable release.
+  }
+}
+
+\section{Version 1.14.0}{
+  \itemize{
+    \item Regular maintenance, stable release.
+  }
+}
+
 \section{Version 1.12.0}{
   \itemize{
     \item Regular maintenance, stable release.

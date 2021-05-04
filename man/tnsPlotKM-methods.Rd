@@ -10,6 +10,7 @@
   tns,
   regs = NULL,
   attribs = NULL,
+  pValueCutoff = 1,
   fname = "survplot",
   fpath = ".",
   xlab = "Months",
@@ -32,6 +33,9 @@ names of the survivalData. All attributes should be binary encoded for
 plotting. Available attributes can be checked by running 
 colnames(tnsGet(tns, "survivalData")). Alternatively, attributes
 can be grouped when provided within a list.}
+
+\item{pValueCutoff}{An numeric value. The p-value cutoff applied to the results
+from the KM analysis pipeline.}
 
 \item{fname}{A string. The name of the file in which the plot will be saved}
 
@@ -63,7 +67,8 @@ width of the internal panels.}
 A plot, showing a graphical analysis for the 'tnsKM' function.
 }
 \description{
-Makes a 2 or 3 panel plot for survival analysis. The first panel shows the
+Plot results from the 'tnsKM' function. The 'tnsPlotKM' function makes 
+a 2 or 3 panel plot for survival analysis. The first panel shows the
 differential Enrichment score (dES) for all samples, ranked by dES 
 in their sections. The second (optional) panel shows the status of other 
 attributes which may be present in the survival data frame for all samples. 

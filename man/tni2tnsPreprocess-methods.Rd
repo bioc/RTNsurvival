@@ -16,7 +16,8 @@
   pAdjustMethod = "BH",
   keycovar = NULL,
   samples = NULL,
-  excludeMid = FALSE
+  excludeMid = FALSE,
+  excludeAttribs = NULL
 )
 }
 \arguments{
@@ -47,6 +48,12 @@ adjustment method to be used (see 'p.adjust' function for details).}
 
 \item{excludeMid}{A logical value. If TRUE, inconclusive dES values is not
 consired in the survival analysis.}
+
+\item{excludeAttribs}{A character vector of attributes listed in the column 
+names of the survivalData, indicating sample groups to be excluded from 
+the survival analysis. All attributes should be binary encoded.
+Available attributes can be checked by running 
+colnames(tnsGet(tns, "survivalData"))}
 }
 \value{
 A preprocessed \linkS4class{TNS} class
