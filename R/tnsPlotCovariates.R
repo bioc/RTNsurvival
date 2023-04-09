@@ -58,7 +58,7 @@
 #'  dummyEncode = FALSE)
 #'  
 #' @importFrom RColorBrewer brewer.pal
-#' @importFrom data.table melt
+#' @importFrom data.table melt as.data.table
 #' @importFrom stats na.exclude na.pass model.matrix
 #' @import ggplot2
 #' @importFrom egg ggarrange
@@ -286,9 +286,10 @@ ggPlotCovariates <- function(reg, plotData, attrib_names, panelHeights,
   #-- Melt data for second plot
   attribData <- as.data.frame(apply(plotData_reg[,attrib_names], 1:2, "as.character"))
   attribData$Samples <- plotData_reg$Samples
-  plotData_melt <- suppressWarnings(melt(attribData, id.vars = "Samples",
-                                         measure.vars = attrib_names,
-                                         variable.name = "Covariates"))
+  plotData_melt <- melt(as.data.table(attribData), 
+                        id.vars = "Samples",
+                        measure.vars = attrib_names,
+                        variable.name = "Covariates")
   
   #-- Second plot (covariate tracks)
   p2 <- ggCovariateTracks(plotData_melt, dummyEncode, divs, attrib_names)
@@ -310,13 +311,13 @@ ggDesPlot <- function(plotData_reg, pal, reg, xlab, ylab,
     annotate("text", x = 0, y = 1.7, label = reg, hjust = -0.2) +
     scale_fill_manual(values = pal) +
     scale_y_continuous(name = ylab, limits = c(-2, 2), expand = c(0,0)) +
-    guides(fill = FALSE) +
+    guides(fill = "none") +
     theme_classic() +
     theme(plot.margin = unit(c(2,4,2,4), "mm")) +
-    theme(axis.ticks = element_line(size = 0.5, 
+    theme(axis.ticks = element_line(linewidth = 0.5, 
                                     colour="black", lineend="round")) +
     theme(axis.ticks.length = unit(0.8, "mm")) +
-    theme(axis.line = element_line(size = 0.5, 
+    theme(axis.line = element_line(linewidth = 0.5, 
                                    colour="black", lineend="round")) +
     theme(panel.background = element_blank(), 
           strip.background = element_blank(), 
@@ -373,7 +374,7 @@ ggCovariateTracks <- function(plotData_melt, dummyEncode, divs, attrib_names) {
           axis.line.x = element_blank(),
           legend.title = element_blank()) +
     theme(axis.ticks.length = unit(0.8, "mm")) +
-    theme(axis.ticks = element_line(size = 0.5, colour="black", 
+    theme(axis.ticks = element_line(linewidth = 0.5, colour="black", 
                                     lineend="round"))
   
   if (!is.null(divs)) {
