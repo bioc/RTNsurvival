@@ -20,7 +20,7 @@
   plotbatch = FALSE,
   width = 6.3,
   height = 3.6,
-  panelWidths = c(3, 2, 4)
+  panelWidths = c(3, 2, 2, 4)
 )
 }
 \arguments{
@@ -34,8 +34,8 @@ plotting. Available attributes can be checked by running
 colnames(tnsGet(tns, "survivalData")). Alternatively, attributes
 can be grouped when provided within a list.}
 
-\item{pValueCutoff}{An numeric value. The p-value cutoff applied to the results
-from the KM analysis pipeline.}
+\item{pValueCutoff}{A numeric value in [0,1]. The p-value cutoff applied to 
+the results from the KM analysis pipeline.}
 
 \item{fname}{A string. The name of the file in which the plot will be saved}
 
@@ -47,7 +47,7 @@ check-up.}
 
 \item{ylab}{A string. The label for the y axis on the third panel}
 
-\item{colorPalette}{A string, which can be 'red', 'blue', 'redblue', or 'bluered'. 
+\item{colorPalette}{A string, which can be 'redblue' or 'bluered'. 
 Alternatively, it can be colors or hex values.}
 
 \item{plotpdf}{A logical value. If TRUE, the plot is saved as a pdf file. 
@@ -77,7 +77,7 @@ data, with a curve for each section.
 }
 \examples{
 # load survival data
-data(survival.data)
+data(survival.data, package = "RTNsurvival")
 
 # load TNI-object
 data(stni, package = "RTN")

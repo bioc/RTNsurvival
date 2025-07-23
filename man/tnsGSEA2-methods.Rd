@@ -23,7 +23,7 @@ the results into the \linkS4class{TNS} class object.
 }
 \examples{
 # load survival data
-data(survival.data)
+data(survival.data, package = "RTNsurvival")
 
 # load TNI-object
 data(stni, package = "RTN")

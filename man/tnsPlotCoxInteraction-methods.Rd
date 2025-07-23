@@ -13,13 +13,12 @@
   ylim = NULL,
   hlim = NULL,
   hcols = c("#008080ff", "#d45500ff"),
-  showdata = TRUE,
   colorPalette = "bluered",
   fname = "coxInteraction",
   fpath = ".",
   width = 4.5,
   height = 4,
-  plotype = "3D",
+  plotype = "p1",
   plotpdf = FALSE
 )
 }
@@ -47,9 +46,6 @@ If plotype='2D', HR is represented in the y-axis.}
 \item{hcols}{A vector of length 2 indicating a diverging color scheme for 
 the Hazard Ratio (HR).}
 
-\item{showdata}{A logical value indicating whether to show the original data 
-used to fit linear model.}
-
 \item{colorPalette}{A string, which can be 'red', 'blue', 'redblue', or 'bluered'. 
 Alternatively, it can be a vector of five colors or hex values.}
 
@@ -61,8 +57,9 @@ Alternatively, it can be a vector of five colors or hex values.}
 
 \item{height}{A numeric value. The height of the plot.}
 
-\item{plotype}{A string indicating '2D' of '3D' plot type. If plotype = '2D', 
-the Hazard Ratio is represented in the y-axis.}
+\item{plotype}{A string indicating a plot type (options: 'p1', 'p2', 'p3'). 
+Plot types 'p1' and 'p2' will show HR on the y-axis, while 'p3' will show 
+HR on a color space.}
 
 \item{plotpdf}{A logical value.}
 }
@@ -76,7 +73,7 @@ Plot results from Cox regression analysis for dual regulons
 }
 \examples{
 # load survival data
-data(survival.data)
+data(survival.data, package = "RTNsurvival")
 
 # load TNI-object
 data(stni, package = "RTN")

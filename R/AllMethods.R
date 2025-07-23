@@ -29,7 +29,7 @@
 #' @return A preprocessed \linkS4class{TNS} class
 #' @examples
 #' # load survival data
-#' data(survival.data)
+#' data(survival.data, package = "RTNsurvival")
 #' 
 #' # load TNI-object
 #' data(stni, package = "RTN")
@@ -51,8 +51,7 @@ setMethod("tni2tnsPreprocess", "TNI",
           function(tni, survivalData = NULL, regulatoryElements = NULL, 
                    time = 1, event = 2, endpoint = NULL, pAdjustMethod = "BH", 
                    keycovar = NULL, samples = NULL, excludeMid = FALSE,
-                   excludeAttribs = NULL)
-          {
+                   excludeAttribs = NULL) {
             #-- tni checks
             tni <- upgradeTNI(tni)
             .tns.checks(tni, type="TNI")
@@ -113,15 +112,18 @@ setMethod("tni2tnsPreprocess", "TNI",
               regulonActivity <- tni.get(tni, what = "regulonActivity")
               regs <- tni@regulatoryElements
               regs <- regs[names(regs)%in%colnames(regulonActivity$differential)]
-              regulonActivity$differential <- regulonActivity$differential[samples,names(regs),drop=F]
-              regulonActivity$positive <- regulonActivity$positive[samples,names(regs),drop=F]
-              regulonActivity$negative <- regulonActivity$negative[samples,names(regs),drop=F]
               regulonActivity$regulatoryElements <- regs
+              regulonActivity$differential <- regulonActivity$differential[samples,names(regs),drop=F]
+              method <- ifelse("positive" %in% names(regulonActivity), "gsea2", "area")
+              if(method=="gsea2"){
+                regulonActivity$positive <- regulonActivity$positive[samples,names(regs),drop=F]
+                regulonActivity$negative <- regulonActivity$negative[samples,names(regs),drop=F]
+              }
               if(max(abs(range(regulonActivity$dif)))>2){
                 regulonActivity$dif <- apply(regulonActivity$dif, 2, rescale, to=c(-1.8, 1.8))
               }
               para <- tnsGet(object, what = "para")
-              para$regulonActivity <- "gsea2"
+              para$regulonActivity <- method
               object <- tns.set(object, regulonActivity, "regulonActivity")
               object <- tns.set(object, para, "para")
               object <- tnsStratification(object, sections = 1, center = TRUE)
@@ -142,7 +144,7 @@ setMethod("tni2tnsPreprocess", "TNI",
 #' @return A \linkS4class{TNS} class, with added regulon activity scores.
 #' @examples
 #' # load survival data
-#' data(survival.data)
+#' data(survival.data, package = "RTNsurvival")
 #' 
 #' # load TNI-object
 #' data(stni, package = "RTN")
@@ -203,7 +205,7 @@ setMethod("tnsGSEA2", "TNS", function(tns, ...) {
 #' using network-based inference of protein activity. Nature Genetics, 48(8):838-847, 2016.
 #' @examples
 #' # load survival data
-#' data(survival.data)
+#' data(survival.data, package = "RTNsurvival")
 #' 
 #' # load TNI-object
 #' data(stni, package = "RTN")
@@ -265,7 +267,7 @@ setMethod("tnsAREA3", "TNS", function(tns, ...){
 #' @return Results from 'survfit' and 'survdiff', including log-rank statistics.
 #' @examples
 #' # load survival data
-#' data(survival.data)
+#' data(survival.data, package = "RTNsurvival")
 #' 
 #' # load TNI-object
 #' data(stni, package = "RTN")
@@ -324,7 +326,8 @@ setMethod("tnsKM", "TNS",
             reglist <- colnames(regulonActivity$status)
             if(!is.null(regs)) {
               if (!all(regs %in% reglist)) {
-                stop("all names in 'regs' should be listed in the slot 'results$regulonActivity' of the 'tns' object!")
+                stop("all names in 'regs' should be listed in the slot 
+                  'results$regulonActivity' of the 'tns' object!")
               }
               reglist <- regs
             }
@@ -383,15 +386,15 @@ setMethod("tnsKM", "TNS",
 #' plotting. Available attributes can be checked by running 
 #' colnames(tnsGet(tns, "survivalData")). Alternatively, attributes
 #' can be grouped when provided within a list.
-#' @param pValueCutoff An numeric value. The p-value cutoff applied to the results
-#' from the KM analysis pipeline.
+#' @param pValueCutoff A numeric value in [0,1]. The p-value cutoff applied to 
+#' the results from the KM analysis pipeline.
 #' @param fname A string. The name of the file in which the plot will be saved
 #' @param fpath A string. The path to the directory where the plot will be saved
 #' @param xlab A string. The label for the x axis on the third panel. This should
 #' be the measure of time shown in the survival data frame after the last 
 #' check-up.
 #' @param ylab A string. The label for the y axis on the third panel
-#' @param colorPalette A string, which can be 'red', 'blue', 'redblue', or 'bluered'. 
+#' @param colorPalette A string, which can be 'redblue' or 'bluered'. 
 #' Alternatively, it can be colors or hex values.
 #' @param plotpdf A logical value. If TRUE, the plot is saved as a pdf file. 
 #' If false, it is plotted in the plotting area.
@@ -405,7 +408,7 @@ setMethod("tnsKM", "TNS",
 #' @return A plot, showing a graphical analysis for the 'tnsKM' function.
 #' @examples
 #' # load survival data
-#' data(survival.data)
+#' data(survival.data, package = "RTNsurvival")
 #' 
 #' # load TNI-object
 #' data(stni, package = "RTN")
@@ -418,6 +421,7 @@ setMethod("tnsKM", "TNS",
 #'
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom survival survdiff survfit coxph Surv
+#' @importFrom stats sd
 #' @docType methods
 #' @rdname tnsPlotKM-methods
 #' @aliases tnsPlotKM
@@ -428,7 +432,7 @@ setMethod("tnsPlotKM", "TNS",
                    fname = "survplot", fpath = ".", xlab = "Months", 
                    ylab = "Survival probability", colorPalette = "bluered", 
                    plotpdf = FALSE, plotbatch = FALSE, width = 6.3, 
-                   height = 3.6, panelWidths = c(3, 2, 4)){
+                   height = 3.6, panelWidths = c(3, 2, 2, 4)){
             #-- checks
             .tns.checks(tns, type = "Activity")
             .tns.checks(regs, type = "regs")
@@ -465,6 +469,16 @@ setMethod("tnsPlotKM", "TNS",
             kmFit <- tnsGet(tns, what = "kmFit")
             kmTable <- kmTable[!is.na(kmTable$Adjusted.Pvalue),]
             kmFit <- kmFit[rownames(kmTable)]
+            
+            #-- get gx for regulatoryElements
+            regexp <- tns@TNI@gexp
+            if(.isUnloggedData(regexp)) regexp <- .log2transform(regexp)
+            regexp <- (regexp - apply(regexp, 1, mean))/apply(regexp, 1, sd)
+            regexp <- t(regexp)
+            regexp <- regexp[ rownames(regulonActivity$differential), 
+              regulonActivity$regulatoryElements, drop=FALSE]
+            colnames(regexp) <- names(regulonActivity$regulatoryElements)
+            regulonActivity$regexp <- regexp
             
             #-- filter data
             kmTable <- kmTable[kmTable$Adjusted.Pvalue<pValueCutoff,]
@@ -595,7 +609,7 @@ setMethod("tnsPlotKM", "TNS",
 #' @return Cox hazard models and statistics.
 #' @examples
 #' # load survival data
-#' data(survival.data)
+#' data(survival.data, package = "RTNsurvival")
 #' 
 #' # load TNI-object
 #' data(stni, package = "RTN")
@@ -721,13 +735,13 @@ setMethod("tnsCox", "TNS",
               }
               res
             })
-            ci <- p.threshold(pvals=coxprobs, alpha=0.05, method=pAdjustMethod)
+            pd <- p.threshold(pvals=coxprobs, alpha=0.05, method=pAdjustMethod)
             
             #--- get coefs
             coxcoefs <- sapply(xregs, function(rg) {
               cxmd <- coxFit[[rg]]
               if(class(cxmd)=="coxph"){
-                res <- summary(cxmd, conf.int = 1-ci)
+                res <- summary(cxmd, conf.int = 1-pd)
                 res <- res$conf.int[rg,c(1,3:4)]
               } else {
                 res <- c(1, 0.99, 1.01)
@@ -740,31 +754,31 @@ setMethod("tnsCox", "TNS",
             
             #--- add keycovars to coxTable
             if(!is.null(keycovar)){
-              idx <- which.min(coxTable[, 1])
-              rg <- rownames(coxTable)[idx]
-              cxmd <- coxFit[[rg]]
-              #---
-              resref <- summary(cxmd, conf.int = 1-ci)
+              cxmd <- coxph(formula(fm1), data = dtsumm)
+              resref <- summary(cxmd, conf.int = 1-pd)
               cii <- resref$conf.int[,c(1,3:4)]
               pr <- resref$coefficients[,c("Pr(>|z|)")]
               resref <- cbind(cii,pr)
-              resref <- resref[-nrow(resref),,drop=FALSE]
               resref <- data.frame(resref)
               colnames(resref) <- c("HR","Lower95","Upper95","Pvalue")
               #---
-              l <- cxmd$xlevels
-              l <- setNames(unlist(l, use.names=F),rep(names(l), lengths(l)))
-              lvs <- paste0(names(l),l)
-              names(lvs) <- names(l)
-              #---
               coxKeycovar <- rownames(resref)
               coxKeycovar <- setNames(coxKeycovar,coxKeycovar)
-              coxKeycovar <- c(coxKeycovar[!coxKeycovar%in%lvs],lvs)
+              coxKeycovar <- data.frame(ID1 = rownames(resref), 
+                ID2 = rownames(resref), ID3 = rownames(resref))
               #---
-              ord <- match(names(coxKeycovar),keycovar)
-              coxKeycovar <- coxKeycovar[sort.list(ord)]
-              resref <- resref[coxKeycovar,]
-              rownames(resref) <- coxKeycovar
+              l <- cxmd$xlevels
+              l <- setNames(unlist(l, use.names=F),rep(names(l), lengths(l)))
+              lvs <- data.frame(ID1 = paste0(names(l), l), 
+                ID2 = paste(names(l), l, sep=":"), ID3=names(l))
+              #---
+              idx <- coxKeycovar$ID1%in%lvs$ID1
+              coxKeycovar <- rbind(coxKeycovar[!idx,], lvs)
+              ord <- match(coxKeycovar$ID3, keycovar)
+              coxKeycovar <- coxKeycovar[sort.list(ord), ]
+              #---
+              resref <- resref[coxKeycovar$ID1,]
+              rownames(resref) <- coxKeycovar <- coxKeycovar$ID2
               resref$HR[is.na(resref$HR)] <- 1
               resref$Lower95[is.na(resref$Lower95)] <- 1
               resref$Upper95[is.na(resref$Upper95)] <- 1
@@ -797,8 +811,8 @@ setMethod("tnsCox", "TNS",
 #' @param tns A \linkS4class{TNS} object, which must have passed GSEA2 analysis.
 #' @param regs An optional string vector specifying regulons to make the plot.
 #' @param fname A string. The name of the PDF file which will contain the plot.
-#' @param pValueCutoff An numeric value. The p-value cutoff applied to the results
-#' from the Cox analysis pipeline.
+#' @param pValueCutoff A numeric value in [0,1]. The p-value cutoff applied to 
+#' the results from the Cox analysis pipeline.
 #' @param fpath A string. The directory where the file will be saved.
 #' @param ylab A string. The label of the y-axis, describing what is represented.
 #' @param xlab A string. The label of the x-axis.
@@ -811,7 +825,7 @@ setMethod("tnsCox", "TNS",
 #' @return A Cox hazard model plot and statistics.
 #' @examples
 #' # load survival data
-#' data(survival.data)
+#' data(survival.data, package = "RTNsurvival")
 #' 
 #' # load TNI-object
 #' data(stni, package = "RTN")
@@ -911,7 +925,7 @@ setMethod("show", "TNS", function(object) {
 #' @return Content from slots in the \linkS4class{TNS} object.
 #' @examples
 #' # load survival data
-#' data(survival.data)
+#' data(survival.data, package = "RTNsurvival")
 #' 
 #' # load TNI-object
 #' data(stni, package = "RTN")
@@ -941,6 +955,7 @@ setMethod("tnsGet", "TNS", function(tns, what)
   } else if(what == "coxTable"){
     query <- tns@results$Cox$Table
     query <- query[!query$Regulons%in%tns@para$keycovar,]
+    query <- query[sort.list(query$Pvalue),]
     return(query)
   } else if(what == "coxFit"){
     return(tns@results$Cox$Fit)
@@ -985,7 +1000,7 @@ setMethod("tnsGet", "TNS", function(tns, what)
 #' 'tnsCoxInteraction' functions.
 #' @examples
 #' # load survival data
-#' data(survival.data)
+#' data(survival.data, package = "RTNsurvival")
 #' 
 #' # load TNI-object
 #' data(stni, package = "RTN")
@@ -1019,19 +1034,28 @@ setMethod("tnsInteraction", "TNS",
 #' Kaplan-Meier analysis for dual regulons, assessing the interaction between regulons.
 #' 
 #' @param tns A \linkS4class{TNS} object, which must have passed GSEA2 analysis.
+#' @param regs1 An optional character vector specifying regulons to test
+#' for interaction. If missing, it will be used all regulons listed in the 
+#' 'TNS' object.
+#' @param regs2 An optional character vector specifying regulons to test
+#' for interaction. If missing, it will be used all regulons listed in the 
+#' 'TNS' object.
 #' @param stepFilter A single logical value specifying to use a step-filter 
 #' algorithm, testing dual regulons that have at least one significant predictor
 #' in the 'tnsKM' method (when stepFilter=TRUE) or not (when stepFilter=FALSE).
-#' @param pValueCutoff An numeric value. The p-value cutoff applied to the results
-#' from the previous steps of the analysis pipeline (when stepFilter=TRUE).
-#' 
+#' @param pValueCutoff A numeric value in [0,1]. The p-value cutoff applied to 
+#' the results from the previous steps of the analysis pipeline 
+#' (when stepFilter=TRUE).
+#' @param phiThreshold A numeric value in [0,1]. The 'phi' coefficient is a 
+#' measure of association between two dichotomous variables. Here, a threshold 
+#' on 'phi' is used to remove regulon pairs with 'strong' dependencies.
 #' @param verbose A logical value specifying to display detailed messages 
 #' (when verbose=TRUE) or not (when verbose=FALSE).
 #' 
 #' @return Results from 'survfit' and 'survdiff', including log-rank statistics.
 #' @examples
 #' # load survival data
-#' data(survival.data)
+#' data(survival.data, package = "RTNsurvival")
 #' 
 #' # load TNI-object
 #' data(stni, package = "RTN")
@@ -1053,13 +1077,17 @@ setMethod("tnsInteraction", "TNS",
 #' @export
 #' 
 setMethod("tnsKmInteraction", "TNS", 
-          function(tns, stepFilter = TRUE, pValueCutoff = 0.05, verbose = TRUE){
+          function(tns, regs1 = NULL, regs2 = NULL, stepFilter = TRUE, 
+            pValueCutoff = 0.05, phiThreshold = 0.5, verbose = TRUE){
             
             #-- checks
             .tns.checks(tns, type = "Activity")
+            .tns.checks(regs1, type = "regs")
+            .tns.checks(regs2, type = "regs")
             .tns.checks(stepFilter, type = "stepFilter")
             .tns.checks(pValueCutoff, type = "pValueCutoff")
             .tns.checks(verbose, type = "verbose")
+            .tns.checks(phiThreshold, type = "phiThreshold")
             
             #-- stratification
             tns <- tnsStratification(tns, sections = 1, center = TRUE)
@@ -1077,12 +1105,58 @@ setMethod("tnsKmInteraction", "TNS",
             survData$time[survData$time > endpoint] <- endpoint
             
             #-- get dualregs
-            regs <- names(tnsGet(tns, what = "regulatoryElements"))
-            dualtb <- t(combn(regs,2))
-            colnames(dualtb) <- c("reg1","reg2")
-            dualtb <- data.frame(dualtb, stringsAsFactors = FALSE)
+            regulatoryElements <- regulonActivity$regulatoryElements
+            if(is.null(regs1)){
+              regs1 <- regulatoryElements
+            } else {
+              if (all(regs1 %in% regulatoryElements)) {
+                regs1 <- regulatoryElements[regulatoryElements %in% regs1]
+              } else if(all(regs1 %in% names(regulatoryElements))) {
+                regs1 <- regulatoryElements[names(regulatoryElements) %in% regs1]
+              } else {
+                stop("all names in 'regs1' should be listed in the slot 
+                     'results$regulonActivity' of the 'tns' object!")
+              }    
+            }
+            if(is.null(regs2)){
+              regs2 <- regulatoryElements
+            } else {
+              if (all(regs2 %in% regulatoryElements)) {
+                regs2 <- regulatoryElements[regulatoryElements %in% regs2]
+              } else if(all(regs2 %in% names(regulatoryElements))) {
+                regs2 <- regulatoryElements[names(regulatoryElements) %in% regs2]
+              } else {
+                stop("all names in 'regs2' should be listed in the slot 
+                     'results$regulonActivity' of the 'tns' object!")
+              }    
+            }
+            regs1 <- names(regs1)
+            regs2 <- names(regs2)
+            regs <- intersect(regs1, regs2)
+            dualtb <- NULL
+            if(length(regs)>0){
+              temp <- t(combn(regs, 2))
+              colnames(temp) <- c("reg1","reg2")
+              temp <- data.frame(temp, stringsAsFactors = FALSE)
+              dualtb <- rbind(dualtb, temp)
+            }
+            regs <- setdiff(regs2, regs1)
+            if(length(regs)>0){
+              temp <- expand.grid(regs1, regs, stringsAsFactors = FALSE)
+              colnames(temp) <- c("reg1","reg2")
+              dualtb <- rbind(dualtb, temp)
+            }
             rownames(dualtb) <- paste(dualtb$reg1, dualtb$reg2, sep="~")
+            
+            #-- remove dependent variables 
+            # apply a chi-squared goodness-of-fit test for equal frequencies
+            dualtb <- .removeDependencies(dualtb, regulonActivity, phiThreshold)
             dualregs <- rownames(dualtb)
+            if(nrow(dualtb)==0){
+              message("NOTE: no regulon passed a chi-square test for independence.",
+                call. = FALSE)
+              return(tns)
+            }
             
             #-- apply stepFilter from previous methods
             if(stepFilter){
@@ -1146,7 +1220,7 @@ setMethod("tnsKmInteraction", "TNS",
 #' be the measure of time shown in the survival data.frame after the last 
 #' check-up.
 #' @param ylab A string. The label for the y axis on the third panel
-#' @param colorPalette A string, which can be 'red', 'blue', 'redblue', or 'bluered'. 
+#' @param colorPalette A string, which can be 'redblue' or 'bluered'. 
 #' Alternatively, it can be a vector of five colors or hex values.
 #' @param width A numeric value. Represents the width of the plot.
 #' @param height A numeric value. Represents the height of the plot.
@@ -1156,7 +1230,7 @@ setMethod("tnsKmInteraction", "TNS",
 #' @return  A plot, showing a graphical analysis for the 'tnsKmInteraction' function.
 #' @examples
 #' # load survival data
-#' data(survival.data)
+#' data(survival.data, package = "RTNsurvival")
 #' 
 #' # load TNI-object
 #' data(stni, package = "RTN")
@@ -1195,6 +1269,10 @@ setMethod("tnsPlotKmInteraction", "TNS",
             .tns.checks(width, type = "width")
             .tns.checks(height, type = "height")
             .tns.checks(plotpdf, type = "plotpdf")
+            tnstatus <- tnsGet(tns, what = "status")
+            if(tnstatus["KmInt"] != "[x]")
+              stop("NOTE: TNS object needs to be evaluated by 'tnsKmInteraction'!", 
+                call. = FALSE)
             
             #-- stratification
             tns <- tnsStratification(tns, sections = 1, center = TRUE)
@@ -1209,23 +1287,44 @@ setMethod("tnsPlotKmInteraction", "TNS",
             #-- get regs
             regs <- unlist(strsplit(dualreg, split = "~", fixed=TRUE))
             
+            #-- get km model
+            kmInteractionTable <- tnsGet(tns, what = "kmInteractionTable")
+            kmInteractionFit <- tnsGet(tns, what = "kmInteractionFit")
+            if(dualreg%in%names(kmInteractionFit)){
+              model <- kmInteractionFit[[dualreg]]
+              model$pAdjustInteraction <- kmInteractionTable[dualreg,"Adjusted.Pvalue"]
+            } else {
+              tp <- paste(regs[2:1], collapse = "~")
+              if(!tp%in%names(kmInteractionTable)){
+                stop("NOTE: 'dualreg' should be listed in 'kmInteractionTable'!\nsee 'tnsGet' function.\n", 
+                  call.=FALSE)
+              }
+              model <- kmInteractionTable[[tp]]
+              model$pAdjustInteraction <- kmInteractionTable[tp,"Adjusted.Pvalue"]
+            }
+            
             #-- making reglist
             if (!all(regs %in% colnames(regulonActivity$status))) {
-              stop("all names in 'dualreg' should be listed in the slot 'results$regulonActivity' of the 'tns' object!")
+              stop("all names in 'dualreg' should be listed in the slot 
+                'results$regulonActivity' of the 'tns' object!")
             }
             
             #---plot
             if(plotpdf){
               fname <- gsub(".pdf", '',fname, ignore.case = TRUE)
-              fname <- paste(fname,"_",paste(regs,collapse = "_"),".pdf", sep = "")
-              pdf(file = paste(fpath, "/", fname, sep = ""), width = width, height = height)
+              fname <- paste(fname,"_",paste(regs,collapse = "_"),
+                ".pdf", sep = "")
+              pdf(file = paste(fpath, "/", fname, sep = ""), 
+                width = width, height = height)
             }
-            .survplotDuals(regulonActivity, survData=survData, regs=regs, 
-                           endpoint=endpoint, excludeMid=excludeMid, 
-                           ylab=ylab, xlab=xlab, colorPalette=colorPalette)
+            
+            .survplotDuals(model=model, regulonActivity, survData=survData, 
+              regs=regs, endpoint=endpoint, excludeMid=excludeMid, 
+              ylab=ylab, xlab=xlab, colorPalette=colorPalette)
             if(plotpdf){
               dev.off()
-              tp1 <- paste0("NOTE: file '",fname,"' should be available either in the")
+              tp1 <- paste0("NOTE: file '",fname,
+                "' should be available either in the")
               tp2 <- c("working directory or in a user's custom directory!\n")
               cat(tp1,tp2)
             }
@@ -1237,19 +1336,31 @@ setMethod("tnsPlotKmInteraction", "TNS",
 #'
 #' Cox regression analysis for dual regulons, including the interaction term.
 #'
-#' @param tns A \linkS4class{TNS} object with regulons used to compute the dual regulons.
+#' @param tns A \linkS4class{TNS} object with regulons used to compute the 
+#' dual regulons.
+#' @param regs1 An optional character vector specifying regulons to test
+#' for interaction. If missing, it will be used all regulons listed in the 
+#' 'TNS' object.
+#' @param regs2 An optional character vector specifying regulons to test
+#' for interaction. If missing, it will be used all regulons listed in the 
+#' 'TNS' object.
 #' @param stepFilter A single logical value specifying to use a step-filter 
 #' algorithm, testing dual regulons that have at least one significant predictor
 #' in the 'tnsCox' method (when stepFilter=TRUE) or not (when stepFilter=FALSE).
-#' @param pValueCutoff An numeric value. The p-value cutoff applied to the results
-#' from the previous steps of the analysis pipeline (when stepFilter=TRUE).
+#' @param pValueCutoff A numeric value in [0,1]. The p-value cutoff applied to 
+#' the results from the previous steps of the analysis pipeline 
+#' (when stepFilter=TRUE).
+#' @param phiThreshold A numeric value in [0,1]. The 'phi' coefficient is a 
+#' measure of association between two dichotomous variables. Here, a threshold 
+#' on 'phi' is used to remove regulon pairs with 'strong' dependencies.
+#' @param method Assess either additive or multiplicative interactions.
 #' @param verbose A logical value specifying to display detailed messages 
 #' (when verbose=TRUE) or not (when verbose=FALSE).
 #' 
 #' @return Cox hazard models and statistics.
 #' @examples
 #' # load survival data
-#' data(survival.data)
+#' data(survival.data, package = "RTNsurvival")
 #' 
 #' # load TNI-object
 #' data(stni, package = "RTN")
@@ -1266,28 +1377,80 @@ setMethod("tnsPlotKmInteraction", "TNS",
 #' @return An updated TNS-class object containing Cox regression models 
 #' for all given duals
 #' @importFrom utils combn
+#' @importFrom stats qnorm vcov confint pnorm
 #' @docType methods
 #' @rdname tnsCoxInteraction-methods
 #' @aliases tnsCoxInteraction
 #' @export
 #' 
 setMethod("tnsCoxInteraction", "TNS",
-          function(tns, stepFilter = TRUE, pValueCutoff = 0.05, 
-                   verbose = TRUE)
-          {
+          function(tns, regs1 = NULL, regs2 = NULL, stepFilter = TRUE, 
+            pValueCutoff = 0.05, phiThreshold = 0.5, 
+            method=c("additive", "multipl"), verbose = TRUE){
             
             #-- checks
             .tns.checks(tns, type = "Activity")
+            .tns.checks(regs1, type = "regs")
+            .tns.checks(regs2, type = "regs")
             .tns.checks(stepFilter, type = "stepFilter")
             .tns.checks(pValueCutoff, type = "pValueCutoff")
             .tns.checks(verbose, type = "verbose")
+            .tns.checks(phiThreshold, type = "phiThreshold")
+            method <- match.arg(method)
             
             #-- get dualregs
-            regs <- names(tnsGet(tns, what = "regulatoryElements"))
-            dualtb <- t(combn(regs,2))
-            colnames(dualtb) <- c("reg1","reg2")
-            dualtb <- data.frame(dualtb, stringsAsFactors = FALSE)
+            regulonActivity <- tnsGet(tns, what = "regulonActivity")
+            regulatoryElements <- regulonActivity$regulatoryElements
+            if(is.null(regs1)){
+              regs1 <- regulatoryElements
+            } else {
+              if (all(regs1 %in% regulatoryElements)) {
+                regs1 <- regulatoryElements[regulatoryElements %in% regs1]
+              } else if(all(regs1 %in% names(regulatoryElements))) {
+                regs1 <- regulatoryElements[names(regulatoryElements) %in% regs1]
+              } else {
+                stop("all names in 'regs1' should be listed in the slot 
+                     'results$regulonActivity' of the 'tns' object!")
+              }    
+            }
+            if(is.null(regs2)){
+              regs2 <- regulatoryElements
+            } else {
+              if (all(regs2 %in% regulatoryElements)) {
+                regs2 <- regulatoryElements[regulatoryElements %in% regs2]
+              } else if(all(regs2 %in% names(regulatoryElements))) {
+                regs2 <- regulatoryElements[names(regulatoryElements) %in% regs2]
+              } else {
+                stop("all names in 'regs2' should be listed in the slot 
+                     'results$regulonActivity' of the 'tns' object!")
+              }    
+            }
+            regs1 <- names(regs1)
+            regs2 <- names(regs2)
+            regs <- intersect(regs1, regs2)
+            dualtb <- NULL
+            if(length(regs)>0){
+              temp <- t(combn(regs, 2))
+              colnames(temp) <- c("reg1","reg2")
+              temp <- data.frame(temp, stringsAsFactors = FALSE)
+              dualtb <- rbind(dualtb, temp)
+            }
+            regs <- setdiff(regs2, regs1)
+            if(length(regs)>0){
+              temp <- expand.grid(regs1, regs, stringsAsFactors = FALSE)
+              colnames(temp) <- c("reg1","reg2")
+              dualtb <- rbind(dualtb, temp)
+            }
             rownames(dualtb) <- paste(dualtb$reg1, dualtb$reg2, sep="~")
+
+            #-- remove dependent variables 
+            # apply a chi-squared goodness-of-fit test for equal frequencies
+            dualtb <- .removeDependencies(dualtb, regulonActivity, phiThreshold)
+            if(nrow(dualtb)==0){
+              message("NOTE: no regulon passed a chi-square test for independence.",
+                call. = FALSE)
+              return(tns)
+            }
             dualregs <- rownames(dualtb)
             
             #-- apply stepFilter from previous methods
@@ -1310,7 +1473,6 @@ setMethod("tnsCoxInteraction", "TNS",
             }
             
             #-- gets
-            regulonActivity <- tnsGet(tns, what = "regulonActivity")
             survData <- tnsGet(tns, what = "survivalData")
             .tns.checks(survData, type = "survival_cox")
             para <- tnsGet(tns, what = "para")
@@ -1338,7 +1500,7 @@ setMethod("tnsCoxInteraction", "TNS",
             #-- checks
             dif <- regulonActivity$dif
             if (excludeMid) {
-              dif1[regulonActivity$status == regulonActivity$center] <- NA
+              dif[regulonActivity$status == regulonActivity$center] <- NA
             }
             
             #-- correct names for a 'formula'
@@ -1352,7 +1514,7 @@ setMethod("tnsCoxInteraction", "TNS",
               pb <- txtProgressBar(min = 0, max = length(dualregs), style = 3)
             }
             
-            #--- fit cox regression model
+            #--- fit a cox regression model
             coxFit <- lapply(dualregs, function(dual){
               if(verbose) setTxtProgressBar(pb, which(dualregs == dual))
               regs <- unlist(strsplit(dual, "~"))
@@ -1371,39 +1533,32 @@ setMethod("tnsCoxInteraction", "TNS",
             if(verbose) close(pb)
             names(coxFit) <- dualregs
             
-            #--- get probs
-            coxprobs <- sapply(dualregs, function(dual){
+            #--- get interaction stats
+            coxTable <- t(sapply(dualregs, function(dual){
               cxmd <- coxFit[[dual]]
               if(class(cxmd)=="coxph"){
-                res <- summary(cxmd)
-                res <- res$coefficients[3,c("Pr(>|z|)")]
+                res <- .interaction.stats(cxmd, method)
               } else {
-                res <- 1
+                if(method=="additive"){
+                  res <- c(0, NA, NA, 1)
+                } else {
+                  res <- c(1, NA, NA, 1)
+                }
               }
               res
-            })
-            ci <- p.threshold(pvals=coxprobs, alpha=0.05, method=pAdjustMethod)
-            
-            #--- get coefs
-            coxcoefs <- sapply(dualregs, function(dual){
-              cxmd <- coxFit[[dual]]
-              if(class(cxmd)=="coxph"){
-                res <- summary(cxmd, conf.int = 1-ci)
-                res <- res$conf.int[3,c(1,3:4)]
-              } else {
-                res <- c(1, 0.99, 1.01)
-              }
-              res
-            })
-            coxcoefs <- t(coxcoefs)
-            coxTable <- cbind(coxcoefs,coxprobs)
+            }))
+            if(method=="additive"){
+              colnames(coxTable) <- c("RERI", "Lower95", "Upper95", "Pvalue")
+            } else {
+              colnames(coxTable) <- c("HR", "Lower95", "Upper95", "Pvalue")
+            }
             #---
             nms <- t(sapply(dualregs, function(dual){
               unlist(strsplit(dual, "~"))
             }))
-            #---
+            colnames(nms) <- c("Regulon1","Regulon2")
             coxTable <- data.frame(nms, coxTable, stringsAsFactors = FALSE)
-            colnames(coxTable) <- c("Regulon1","Regulon2", "HR", "Lower95", "Upper95", "Pvalue")
+            #---
             coxTable$Adjusted.Pvalue <- p.adjust(coxTable$Pvalue, method = pAdjustMethod)
             coxTable <- coxTable[sort.list(coxTable[,"Pvalue"]),, drop=FALSE]
             res <- list(Table=coxTable, Fit=coxFit)
@@ -1430,21 +1585,20 @@ setMethod("tnsCoxInteraction", "TNS",
 #' If plotype='2D', HR is represented in the y-axis.
 #' @param hcols A vector of length 2 indicating a diverging color scheme for 
 #' the Hazard Ratio (HR).
-#' @param showdata A logical value indicating whether to show the original data 
-#' used to fit linear model.
 #' @param colorPalette A string, which can be 'red', 'blue', 'redblue', or 'bluered'. 
 #' Alternatively, it can be a vector of five colors or hex values.
 #' @param fname A string. The name of the PDF file (when plotpdf=TRUE).
 #' @param fpath A string. The directory where the file will be saved.
 #' @param width A numeric value. The width of the plot.
 #' @param height A numeric value. The height of the plot.
-#' @param plotype A string indicating '2D' of '3D' plot type. If plotype = '2D', 
-#' the Hazard Ratio is represented in the y-axis.
+#' @param plotype A string indicating a plot type (options: 'p1', 'p2', 'p3'). 
+#' Plot types 'p1' and 'p2' will show HR on the y-axis, while 'p3' will show 
+#' HR on a color space.
 #' @param plotpdf A logical value.
 #' @return A Cox hazard model plot and statistics.
 #' @examples
 #' # load survival data
-#' data(survival.data)
+#' data(survival.data, package = "RTNsurvival")
 #' 
 #' # load TNI-object
 #' data(stni, package = "RTN")
@@ -1472,11 +1626,10 @@ setMethod("tnsCoxInteraction", "TNS",
 #' @export
 #'
 setMethod("tnsPlotCoxInteraction", "TNS", 
-          function(tns, dualreg, xlim=NULL, ylim=NULL, hlim=NULL, 
-                   hcols = c("#008080ff","#d45500ff"), showdata = TRUE, 
-                   colorPalette = "bluered", fname = "coxInteraction", 
-                   fpath = ".", width = 4.5, height = 4, plotype = "3D", 
-                   plotpdf = FALSE){
+  function(tns, dualreg, xlim=NULL, ylim=NULL, hlim=NULL, 
+    hcols = c("#008080ff","#d45500ff"), colorPalette = "bluered", 
+    fname = "coxInteraction", fpath = ".", width = 4.5, height = 4, 
+    plotype = "p1", plotpdf = FALSE){
             
             #-- checks
             .tns.checks(tns, type = "Activity")
@@ -1485,7 +1638,6 @@ setMethod("tnsPlotCoxInteraction", "TNS",
             if(!is.null(ylim)) .tns.checks(ylim, type = "ylim_reg")
             if(!is.null(hlim)) .tns.checks(hlim, type = "hlim_log")
             .tns.checks(hcols, type = "hcols")
-            .tns.checks(showdata, type = "showdata")
             .tns.checks(colorPalette, 2, type = "colorPalette")
             .tns.checks(fname, type = "fname")
             .tns.checks(fpath, type = "fpath")
@@ -1518,14 +1670,14 @@ setMethod("tnsPlotCoxInteraction", "TNS",
             }
             
             #--- get labs
-            if(plotype=="3D"){
+            if(plotype=="p1"){
+              xlab <- paste("Regulon activity of", regs[1])
+              ylab <- paste("Regulon activity\nstatus of",regs[2])
+              zlab <- "Hazard Ratio (HR)"
+            } else {
               xlab <- paste("Regulon activity of",regs[1])
               ylab <- paste("Regulon activity of",regs[2])
               zlab <- "HR"
-            } else {
-              xlab <- paste("Regulon activity of",regs[1])
-              ylab <- paste("Regulon activity\nof",regs[2],"(dES)")
-              zlab <- "Hazard Ratio (HR)"
             }
             
             #-- correct names for a 'formula'
@@ -1533,39 +1685,35 @@ setMethod("tnsPlotCoxInteraction", "TNS",
             names(xregs) <- regs
             
             #--- set colorPalette
-            if(showdata){
-              tns <- tnsStratification(tns, sections = 1, center = TRUE)
-              regulonActivity <- tnsGet(tns, "regulonActivity")
-              excludeMid <- tnsGet(tns, what = "para")$excludeMid
-              status <- .getSurvplotCols(regulonActivity, regs, excludeMid, colorPalette)
-              obdata <- stats::model.frame(model, drop.unused.levels=TRUE)
-              if(all(rownames(obdata) %in% names(status$cols))){
-                datacols <- status$cols[rownames(obdata)]
-              } else {
-                stop("...unanticipated error occurred while processing this call!")
-              }
-              if(is.null(xlim)) 
-                xlim <- range(obdata[,xregs[1]])*1.04
-              xlim <- max(abs(xlim))
-              xlim <- c(-xlim,xlim)
-              if(is.null(ylim))
-                ylim <- range(obdata[,xregs[2]])*1.04
-              ylim <- max(abs(ylim))
-              ylim <- c(-ylim,ylim)
+            tns <- tnsStratification(tns, sections = 1, center = TRUE)
+            regulonActivity <- tnsGet(tns, "regulonActivity")
+            excludeMid <- tnsGet(tns, what = "para")$excludeMid
+            status <- .getSurvplotCols(regulonActivity, regs, excludeMid, colorPalette)
+            obdata <- stats::model.frame(model, drop.unused.levels=TRUE)
+            if(all(rownames(obdata) %in% names(status$cols))){
+              datacols <- status$cols[rownames(obdata)]
             } else {
-              datacols <- NA
+              stop("...unanticipated error occurred while processing this call!")
             }
+            if(is.null(xlim)) 
+              xlim <- range(obdata[,xregs[1]])*1.04
+            xlim <- max(abs(xlim))
+            xlim <- c(-xlim,xlim)
+            if(is.null(ylim))
+              ylim <- range(obdata[,xregs[2]])*1.04
+            ylim <- max(abs(ylim))
+            ylim <- c(-ylim,ylim)
             
             #----- Coxplot
             if(plotpdf){
               fname <- gsub(".pdf", '',fname, ignore.case = TRUE)
-              fname <- paste(fname,plotype,"_",paste(regs,collapse = "_"),sep = "")
+              fname <- paste(fname,plotype,"_",paste(regs,collapse = "_"),
+                sep = "")
             }
-            mbrPlotInteraction(model=model, vars=xregs, xlim=xlim, ylim=ylim, zlim=hlim, 
-                               xlab=xlab, ylab=ylab, zlab=zlab, zlog=TRUE,
-                               zcols=hcols, showdata=showdata, datacols=datacols,
-                               fname=fname, fpath=fpath, width=width, height=height,
-                               plotpdf=plotpdf, plotype = plotype)
+            mbrPlotInteraction(model=model, vars=xregs, xlim=xlim, ylim=ylim, 
+              zlim=hlim, xlab=xlab, ylab=ylab, zlab=zlab, zlog=TRUE,
+              zcols=hcols, datacols=datacols, fname=fname, fpath=fpath, 
+              width=width, height=height, plotpdf=plotpdf, plotype = plotype)
           })
 
 #' Plot 2-tailed GSEA for a sample from a TNS
@@ -1583,7 +1731,8 @@ setMethod("tnsPlotCoxInteraction", "TNS",
 #' (when verbose=TRUE) or not (when verbose=FALSE).
 #' @param ntop An optional integer value. The number of regulons for which the 
 #' GSEA2 will be plotted.
-#' @param pValueCutoff An numeric value. The p-value cutoff for the analysis.
+#' @param pValueCutoff A numeric value in [0,1]. The p-value cutoff for the 
+#' analysis.
 #' @param pAdjustMethod A character. Specifies the adjustment method for the 
 #' pvalue.
 #' See \code{\link{p.adjust}}
@@ -1594,7 +1743,7 @@ setMethod("tnsPlotCoxInteraction", "TNS",
 #' @return A plot containing the 2-tailed GSEA analysis for a phenotype.
 #' @examples
 #' # load survival data
-#' data(survival.data)
+#' data(survival.data, package = "RTNsurvival")
 #' 
 #' # load TNI-object
 #' data(stni, package = "RTN")

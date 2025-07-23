@@ -28,7 +28,7 @@ Run Cox multivariate regression for regulons and other covariates.
 }
 \examples{
 # load survival data
-data(survival.data)
+data(survival.data, package = "RTNsurvival")
 
 # load TNI-object
 data(stni, package = "RTN")

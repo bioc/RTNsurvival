@@ -36,7 +36,8 @@ into log space.}
 \item{ntop}{An optional integer value. The number of regulons for which the 
 GSEA2 will be plotted.}
 
-\item{pValueCutoff}{An numeric value. The p-value cutoff for the analysis.}
+\item{pValueCutoff}{A numeric value in [0,1]. The p-value cutoff for the 
+analysis.}
 
 \item{pAdjustMethod}{A character. Specifies the adjustment method for the 
 pvalue.
@@ -59,7 +60,7 @@ present in a TNS. A wrapper of \code{\link{tna.plot.gsea2}}
 }
 \examples{
 # load survival data
-data(survival.data)
+data(survival.data, package = "RTNsurvival")
 
 # load TNI-object
 data(stni, package = "RTN")

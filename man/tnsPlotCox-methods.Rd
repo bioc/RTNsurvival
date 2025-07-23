@@ -26,8 +26,8 @@
 
 \item{regs}{An optional string vector specifying regulons to make the plot.}
 
-\item{pValueCutoff}{An numeric value. The p-value cutoff applied to the results
-from the Cox analysis pipeline.}
+\item{pValueCutoff}{A numeric value in [0,1]. The p-value cutoff applied to 
+the results from the Cox analysis pipeline.}
 
 \item{fname}{A string. The name of the PDF file which will contain the plot.}
 
@@ -56,7 +56,7 @@ Plot results from the 'tnsCox' function.
 }
 \examples{
 # load survival data
-data(survival.data)
+data(survival.data, package = "RTNsurvival")
 
 # load TNI-object
 data(stni, package = "RTN")

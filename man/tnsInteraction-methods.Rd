@@ -26,7 +26,7 @@ A generic call to 'tnsCoxInteraction' and 'tnsKmInteraction' functions.
 }
 \examples{
 # load survival data
-data(survival.data)
+data(survival.data, package = "RTNsurvival")
 
 # load TNI-object
 data(stni, package = "RTN")

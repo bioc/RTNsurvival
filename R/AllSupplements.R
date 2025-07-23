@@ -52,7 +52,7 @@ tnsStratification <- function(tns, sections = 1, center = FALSE,
     neg <- tns@results$regulonActivity$neg[, reg]
     dif <- tns@results$regulonActivity$dif[, reg]
     #---
-    if(undetermined.status)status[sign(pos) == sign(neg), reg] <- 0
+    if(undetermined.status) status[sign(pos) == sign(neg), reg] <- 0
     tp <- status[, reg]
     #---
     tp1 <- sort(dif[tp > 0], decreasing = TRUE)
@@ -132,26 +132,24 @@ tnsStratification <- function(tns, sections = 1, center = FALSE,
   }
   regel <- tni@regulatoryElements[idx]
   if(length(regel)<2){
-    tp <- paste("NOTE: at least two valid names in 'regulatoryElements'", 
-                " are required to call dual regulons!", sep="")
-    tp <- c(tp, "\n...in the preprocess checks, only '", names(regel),"' was valid!")
-    warning(tp, call.=FALSE)
+    tp <- paste("At least two valid 'regulatoryElements'", 
+                " are required for the downstream analysis pipelines.", sep="")
+    stop(tp, call.=FALSE)
   }
   return (regel)
 }
-
 ##------------------------------------------------------------------------------
 .survstats <- function(regulonActivity, survData, reg, excludeMid){
   #-- get data
-  tumours <- rev(sort(regulonActivity$dif[, reg], decreasing = TRUE))
-  status <- regulonActivity$status[names(tumours), reg]
+  ractiv <- rev(sort(regulonActivity$dif[, reg], decreasing = TRUE))
+  status <- regulonActivity$status[names(ractiv), reg]
   nclass <- length(unique(status))
   #--- third panel plot (Kaplan-Meier)
   if (excludeMid && nclass%%2 != 0 && nclass > 1){
     rmc <- (nclass + 1)/2
     idx <- status != rmc
     status <- status[idx]
-    tumours <- tumours[idx]
+    ractiv <- ractiv[idx]
     nclass <- nclass - 1
   }
   sections <- sort(unique(status))
@@ -184,12 +182,13 @@ tnsStratification <- function(tns, sections = 1, center = FALSE,
                       xlab, ylab, colorPalette, panelWidths, 
                       excludeMid, attribs, groups){
   #-- get data
-  tumours <- rev(sort(regulonActivity$dif[, reg], decreasing = TRUE))
-  status <- regulonActivity$status[names(tumours), reg]
+  ractiv <- rev(sort(regulonActivity$dif[, reg], decreasing = TRUE))
+  status <- regulonActivity$status[names(ractiv), reg]
   nclass <- length(unique(status))
+  regexp <- regulonActivity$regexp[names(ractiv), reg]
   
   #-- get colors
-  if (is.singleString(colorPalette)){
+  if (.is_singleString(colorPalette)){
     if (colorPalette == "red"){
       cols <- pal1(nclass)
     } else if (colorPalette == "blue"){
@@ -209,25 +208,25 @@ tnsStratification <- function(tns, sections = 1, center = FALSE,
   
   #--- adjust graphical parameters
   op <- par(no.readonly = TRUE)
-  np <- length(tumours)
+  np <- length(ractiv)
   nms <- pretty(c(1, np), eps.correct = 1) + 1
   dp <- nms[2] - nms[1]
   pp <- length(nms)
   if ((abs(nms[pp] - np)/dp) > 0.6) nms <- nms[-pp]
   nms[length(nms)] <- np
   if(!is.null(attribs)){
-    mt <- matrix(c(1,2,3), 1, 3)
-    mar = c(7.5, 5, 3, 0.7)
+    mt <- matrix(c(1,2,3,4), 1, 4)
+    mar = c(7.5, 1, 3, 0.7)
   } else {
-    mt <- matrix(c(1,1,2), 1, 3)
-    mar = c(7.5, 15, 3, 0)
+    mt <- matrix(c(1,2,3,3), 1, 4)
+    mar = c(7.5, 1, 3, 0)
   }
-  layout(mt, widths = panelWidths)
-  par(mgp = c(2.5, 0.4, 0), mar = mar, cex=0.66)
-  xlim <- range(tumours) + c(-0.5, 0.5)
+  graphics::layout(mt, widths = panelWidths)
+  par(mgp = c(2.5, 0.4, 0), mar = c(7.5, 5, 3, 0), cex=0.66)
+  xlim <- range(ractiv) + c(-0.5, 0.5)
   
   #--- first plot (stratification)
-  barplot(tumours, space = 0, xlim = c(-2, 2), axes = FALSE, cex.lab = 1.2, 
+  barplot(ractiv, space = 0, xlim = c(-2, 2), axes = FALSE, cex.lab = 1.2, 
           col = cols[as.factor(status)], horiz = TRUE, border = NA, 
           axisnames = FALSE, ylab = "Samples", xlab = "", 
           beside = TRUE, lwd = 1)
@@ -236,7 +235,18 @@ tnsStratification <- function(tns, sections = 1, center = FALSE,
   axis(2, at = nms, labels = nms, tcl = -0.2, las = 2, lwd = 1.8, cex.axis = 1.2)
   axis(1, tcl = -0.2, lwd = 1.8, cex.axis = 1.2)
   
-  #--- second plot (attribs, optional)
+  #--- second plot (r.gexp)
+  par(mar = mar)
+  at <- pretty(regexp, n = 3, bounds=FALSE)
+  barplot(regexp, space = 0, xlim=range(regexp),
+    axes = FALSE, cex.lab = 1.2, 
+    col = "grey", horiz = TRUE, border = NA, 
+    axisnames = FALSE, ylab = NULL, xlab = "", 
+    beside = TRUE, lwd = 1)
+  mtext("TF expression\n(z-score)", 1, adj = 0.5, line = 3, cex = 0.8)
+  axis(1, tcl = -0.2, lwd = 1.8, cex.axis = 1.2, at=at)
+  
+  #--- 3rd plot (attribs, optional)
   if(!is.null(attribs)){
     attribs <- attribs[names(status), ]
     par(mar = c(7.5, 0, 3, 0))
@@ -267,14 +277,14 @@ tnsStratification <- function(tns, sections = 1, center = FALSE,
     cols <- cols[-rmc]
     idx <- status != rmc
     status <- status[idx]
-    tumours <- tumours[idx]
+    ractiv <- ractiv[idx]
     nclass <- nclass - 1
   }
   sections <- sort(unique(status))
   if (length(sections) < length(cols)) cols <- cols[-((length(cols) + 1)/2)]
   
   #-- km plot
-  par(mar = c(7.5, 5, 3, 1))
+  par(mar = c(7.5, 4, 3, 1))
   if(endpoint/3==round(endpoint/3)){
     length.out=4
   } else {
@@ -304,7 +314,7 @@ tnsStratification <- function(tns, sections = 1, center = FALSE,
            cex = 1, pt.cex = 1.5)
     par(xpd=TRUE)
     pval <- kmtb$Adjusted.Pvalue
-    pval <- paste("Logrank P: ", format(pval, digits = 3, scientific = TRUE))
+    pval <- paste("Logrank p-adj: ", format(pval, digits = 3, scientific = TRUE))
     legend("topright", cex = 1, legend = pval, bty = "n", inset = c(0,-0.05))
   }
   par(op)
@@ -513,14 +523,26 @@ p.threshold <- function (pvals, alpha=0.05, method="BH"){
   padj <- p.adjust(pvals, method = method)
   thset <- which(padj <= alpha)
   if(length(thset)>0){
-    mx1 <- mx2 <- which.max(thset)
-    if(mx2<length(padj)) mx2 <- mx2 + 1
-    th <- (pvals[mx1] + min(pvals[mx2],alpha) ) / 2
+    mx <- which.max(thset)
+    th <- alpha - (padj[mx] - pvals[mx])
   } else {
-    th <- min(c(alpha,pvals))
+    th <- alpha
   }
   return(th)
 }
 
-
+##------------------------------------------------------------------------
+# GEO2R auto-detect checks and log2 transformation
+.isUnloggedData <- function(gexp){
+  qx <- as.numeric(quantile(gexp, c(0., 0.25, 0.5, 0.75, 0.99, 1.0), na.rm=TRUE))
+  LogC <- (qx[5] > 100) || (qx[6]-qx[1] > 50 && qx[2] > 0) || 
+    (qx[2] > 0 && qx[2] < 1 && qx[4] > 1 && qx[4] < 2)
+  LogC
+}
+.log2transform<-function(gexp){
+  gexp[which(gexp <= 0)] <- NaN
+  gexp <- log2(gexp) 
+  gexp[is.nan(gexp)] <- 0
+  gexp
+}
 

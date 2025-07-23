@@ -34,7 +34,7 @@ check-up.}
 
 \item{ylab}{A string. The label for the y axis on the third panel}
 
-\item{colorPalette}{A string, which can be 'red', 'blue', 'redblue', or 'bluered'. 
+\item{colorPalette}{A string, which can be 'redblue' or 'bluered'. 
 Alternatively, it can be a vector of five colors or hex values.}
 
 \item{width}{A numeric value. Represents the width of the plot.}
@@ -52,7 +52,7 @@ Plot results from Kaplan-Meier analysis for dual regulons
 }
 \examples{
 # load survival data
-data(survival.data)
+data(survival.data, package = "RTNsurvival")
 
 # load TNI-object
 data(stni, package = "RTN")

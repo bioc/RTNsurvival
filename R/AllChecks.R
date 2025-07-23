@@ -10,7 +10,7 @@
       stop("rows in 'survivalData' must be named.", call. = FALSE)    
   }
   else if (type == "time"){
-    if (!is.singleInteger(object1) && !is.singleString(object1)) 
+    if (!.is_singleInteger(object1) && !.is_singleString(object1)) 
       stop("'time' should be either a character or integer value !\n", 
            call. = FALSE)
     if (is.character(object1)){
@@ -29,7 +29,7 @@
     return(object1)
   } 
   else if (type == "event"){
-    if (!is.singleInteger(object1) && !is.singleString(object1)) 
+    if (!.is_singleInteger(object1) && !.is_singleString(object1)) 
       stop("'event' should be either a character or integer 
            value !\n", 
            call. = FALSE)
@@ -43,7 +43,7 @@
     vals <- object2[, object1]
     if (!is.numeric(vals)){
       stop("'event' data must be numeric.", call. = FALSE)
-    } else if (!all.binaryValues(vals)){
+    } else if (!.all_binaryValues(vals)){
       stop("'event' data must be either binary or logical.", call. = FALSE)
     }
     return(object1)
@@ -73,7 +73,7 @@
         stop("all 'excludeAttribs' must be listed in the 'survivalData' colnames, at the 'tns' object!", 
              call. = FALSE)
       bl <- sapply(object1, function(at){
-        all.binaryValues(object2[,at])
+        .all_binaryValues(object2[,at])
       })
       if(!all(bl))
         stop("'excludeAttribs' values in the 'survivalData' must be binary values (0,1)!", 
@@ -110,13 +110,13 @@
               coxph function may not converge.")
   } 
   else if (type == "fpath"){
-    if (!is.singleString(object1)) 
+    if (!.is_singleString(object1)) 
       stop("'fpath' must be a single character.", call. = FALSE)
     if (!dir.exists(object1)) 
       stop("'fpath' does not lead to an existing directory.", call. = FALSE)
   } 
   else if (type == "fname"){
-    if (!is.singleString(object1)) 
+    if (!.is_singleString(object1)) 
       stop("'fname' must be a single character.", call. = FALSE)
     #---check name
     validname <- gsub("[^0-9A-Za-z\\.]", '_',object1)
@@ -126,21 +126,21 @@
     }
   } 
   else if (type == "ylab"){
-    if (!is.singleString(object1)) 
+    if (!.is_singleString(object1)) 
       stop("'ylab' must be a single character.", call. = FALSE)
   } 
   else if (type == "xlab"){
-    if (!is.singleString(object1)) 
+    if (!.is_singleString(object1)) 
       stop("'xlab' must be a single character.", call. = FALSE)
   } 
   else if (type == "regs"){
     if (!is.null(object1)){
-      if (!all.characterValues(object1)) 
+      if (!.all_characterValues(object1)) 
         stop("'regs' must be a character vector.", call. = FALSE)
     }
-  } 
+  }
   else if(type == "regulatoryElements"){
-    if(!all.characterValues(object1) || any(duplicated(object1)) ){
+    if(!.all_characterValues(object1) || any(duplicated(object1)) ){
       stop("NOTE: 'regulatoryElements' should be unique character values !", 
            call. = FALSE)
     }
@@ -156,7 +156,7 @@
         stop("all 'attribs' must be listed in the 'survivalData' colnames, at the 'tns' object!", 
              call. = FALSE)
       bl <- sapply(object1, function(at){
-        all.binaryValues(object2[,at])
+        .all_binaryValues(object2[,at])
       })
       if(!all(bl))
         stop("'attribs' values in the 'survivalData' must be binary values (0,1)!", 
@@ -174,7 +174,7 @@
         stop("all 'attribs' must be listed in the 'survivalData' colnames, at the 'tns' object!", 
              call. = FALSE)
       bl <- sapply(object1, function(at){
-        all.integerOrFactorOrNaValues(object2[,at])
+        .all_integerOrFactorOrNaValues(object2[,at])
       })
       if(!all(bl))
         stop("'attribs' values in the 'survivalData' must be integer or factor!", 
@@ -183,82 +183,87 @@
   }
   else if (type == "colorPalette"){
     len <- (object2 * 2) + 1
-    tp1 <- "'colorPalette' must be 'red', 'blue', 'redblue' or 'bluered'"
+    tp1 <- "'colorPalette' must be 'redblue' or 'bluered'"
     message <- paste(tp1,", or a vector with ", len," valid colors.", sep="")
-    if(is.singleString(object1)){
-      if (!object1 %in% c("red", "blue", "redblue","bluered"))
+    if(.is_singleString(object1)){
+      if (!object1 %in% c("reds", "blues", "redblue","bluered"))
         stop(message, call. = FALSE)
-    } else if(!is.color(object1) || length(object1)!=len){
+    } else if(!.is_color(object1) || length(object1)!=len){
       stop(message, call. = FALSE)
     }
   }
   else if (type == "excludeMid"){
-    if (!is.singleLogical(object1)) 
+    if (!.is_singleLogical(object1)) 
       stop("'excludeMid' must be a logical value.", call. = FALSE)
   }
   else if (type == "plotpdf"){
-    if (!is.singleLogical(object1)) 
+    if (!.is_singleLogical(object1)) 
       stop("'plotpdf' must be a logical value.", call. = FALSE)
   } 
   else if (type == "showdata"){
-    if (!is.singleLogical(object1)) 
+    if (!.is_singleLogical(object1)) 
       stop("'showdata' must be a logical value.", call. = FALSE)
   } 
   else if (type == "plotbatch"){
-    if (!is.singleLogical(object1)) 
+    if (!.is_singleLogical(object1)) 
       stop("'plotbatch' must be a logical value.", call. = FALSE)
   } 
   else if (type == "qqkeycovar"){
-    if (!is.singleLogical(object1)) 
+    if (!.is_singleLogical(object1)) 
       stop("'qqkeycovar' must be a logical value..", call. = FALSE)
   } 
   else if (type == "sortregs"){
-    if (!is.singleLogical(object1)) 
+    if (!.is_singleLogical(object1)) 
       stop("'sortregs' must be logical value.", call. = FALSE)
   } 
   else if (type == "sortcovars"){
-    if (!is.singleLogical(object1)) 
+    if (!.is_singleLogical(object1)) 
       stop("'sortcovars' must be logical value.", call. = FALSE)
   } 
   else if (type == "checklog"){
-    if (!is.singleLogical(object1)) 
+    if (!.is_singleLogical(object1)) 
       stop("'checklog' must be logical value.", call. = FALSE)
   } 
   else if(type=="pValueCutoff"){
-    if(!is.singleNumber(object1) || object1 > 1 || object1 < 0) 
-      stop("'pValueCutoff' should be an integer or numeric value >=0 and <=1 !", 
+    if(!.is_singleNumber(object1) || object1 > 1 || object1 < 0) 
+      stop("'pValueCutoff' should be a numeric value >=0 and <=1 !", 
            call. = FALSE)
+  } 
+  else if(type=="phiThreshold"){
+    if(!.is_singleNumber(object1) || object1 > 1 || object1 < 0) 
+      stop("'phiThreshold' should be a numeric value >=0 and <=1 !", 
+        call. = FALSE)
   } 
   else if(type=="pAdjustMethod"){
     tp <- c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none")
-    if(!is.singleString(object1) || !(object1 %in% tp)) 
+    if(!.is_singleString(object1) || !(object1 %in% tp)) 
       stop("'pAdjustMethod' should be any one of: ", 
            paste(tp, collapse = ", "), call. = FALSE)
   } 
   else if (type == "verbose"){
-    if (!is.singleLogical(object1)) 
+    if (!.is_singleLogical(object1)) 
       stop("'verbose' must be logical value.", call. = FALSE)
   } 
   else if (type == "stepFilter"){
-    if (!is.singleLogical(object1)) 
+    if (!.is_singleLogical(object1)) 
       stop("'stepFilter' must be logical value.", call. = FALSE)
   } 
   else if (type == "ntop"){
     if (!is.null(object1)){
-      if (!is.singleInteger(object1) || object1 <= 0) 
+      if (!.is_singleInteger(object1) || object1 <= 0) 
         stop("'ntop' should be an integer value > 0.", call. = FALSE)
     }
   }
   else if (type == "width"){
-    if (!is.singleNumber(object1)) 
+    if (!.is_singleNumber(object1)) 
       stop("'width' must be a single numeric values.", call. = FALSE)
   }
   else if (type == "height"){
-    if (!is.singleNumber(object1)) 
+    if (!.is_singleNumber(object1)) 
       stop("'height' must be a single numeric values.", call. = FALSE)
   }
   else if (type == "endpoint"){
-    if (!is.null(object1) && !is.singleNumber(object1)) 
+    if (!is.null(object1) && !.is_singleNumber(object1)) 
       stop("'endpoint' must be a numeric value.", call. = FALSE)
   } 
   else if (type == "aSample"){
@@ -275,9 +280,9 @@
     }
     } 
   else if (type == "plotype"){
-    if(is.singleString(object1)) 
-      tp <- c("2D","3D")
-    if(!is.singleString(object1)){
+    if(.is_singleString(object1)) 
+      tp <- c("p1","p2","p3")
+    if(!.is_singleString(object1)){
       stop("'plotype' must be a single string.", call. = FALSE) 
     } else if (!(object1 %in% tp)){
       stop("'plotype' must be one of '",paste(tp, collapse ="', '"),"'", call. = FALSE)
@@ -332,7 +337,7 @@
       stop("'hlim' must be > 0 in log space.", call. = FALSE)
   }
   else if (type == "dualreg"){
-    if(!is.singleString(object1)) 
+    if(!.is_singleString(object1)) 
       stop("'dualreg' must be a single string.", call. = FALSE)
     tp <- unlist(strsplit(object1, split = "~", fixed=TRUE))
     if(length(tp)!=2)
@@ -340,8 +345,8 @@
            call. = FALSE)
   } 
   else if (type == "panelWidths"){
-    if (!is.numeric(object1) || length(object1) != 3) 
-      stop("'panelWidths' must be a numeric vector of length 3.", 
+    if (!is.numeric(object1) || length(object1) != 4) 
+      stop("'panelWidths' must be a numeric vector of length 4.", 
            call. = FALSE)
     if (object1[1] == 0 || object1[3] == 0) 
       stop("The width of the first and third panels cannot be 0.", 
@@ -356,7 +361,7 @@
            call. = FALSE)
   }
   else if (type == "dummyEncode") {
-    if(!is.singleLogical(object1) && !(object1 %in% colnames(object2))) {
+    if(!.is_singleLogical(object1) && !(object1 %in% colnames(object2))) {
       stop("`dummyEncode` must be either a logical value or a character vector of names of columns to dummy encode.")
     }
   }
@@ -406,16 +411,16 @@
     }
   } 
   else if(type == "center"){
-    if (!is.singleLogical(object1)) 
+    if (!.is_singleLogical(object1)) 
       stop("'center' must be logical value.", call. = FALSE)
   }
   else if(type == "cols") {
-    if(!is.color(object1))
+    if(!.is_color(object1))
       stop("NOTE: 'cols' should be a vector with valid colors!", 
            call.=FALSE)
   }
   else if(type == "hcols") {
-    if(!is.color(object1) || length(object1)!=2)
+    if(!.is_color(object1) || length(object1)!=2)
       stop("NOTE: 'hcols' should be a vector (length = 2) with valid colors!", 
            call.=FALSE)
   }
@@ -438,12 +443,12 @@
     }
   }
   else if(type == "nGroupsEnriched") {
-    if (!is.singleNumber(object1)) {
+    if (!.is_singleNumber(object1)) {
       stop("`nGroupsEnriched` must be a single integer.")
     }
   }
   else if(type == "nTopEnriched") {
-    if (!is.singleNumber(object1)) {
+    if (!.is_singleNumber(object1)) {
       stop("`nTopEnriched` must be a single integer.")
     }
   }
@@ -453,48 +458,48 @@
     }
   }
   else if(type == "markEnriched") {
-    if(!is.singleLogical(object1)) {
+    if(!.is_singleLogical(object1)) {
       stop("`markEnriched` must be a single logical value.")
     }
   }
   else if(type == "undetermined.status") {
-    if(!is.singleLogical(object1)) {
+    if(!.is_singleLogical(object1)) {
       stop("`undetermined.status` must be a single logical value.")
     }
   }
   }
 
-is.singleNumber <- function(para){
+.is_singleNumber <- function(para){
   (is.integer(para) || is.numeric(para)) && length(para) == 1L && !is.na(para)
 }
-is.singleInteger <- function(para){
+.is_singleInteger <- function(para){
   lg <- (is.integer(para) || is.numeric(para)) && length(para) == 1L && !is.na(para)
   if(lg) lg <- ( (para+1) / (ceiling(para)+1) ) == 1
   return(lg)
 }
-is.singleString <- function(para){
+.is_singleString <- function(para){
   is.character(para) && length(para) == 1L && !is.na(para)
 }
-is.singleLogical <- function(para){
+.is_singleLogical <- function(para){
   is.logical(para) && length(para) == 1L && !is.na(para)
 }
-all.binaryValues <- function(para){
+.all_binaryValues <- function(para){
   all(para %in% c(0, 1, NA))
 }
-all.integerValues <- function(para){
+.all_integerValues <- function(para){
   lg <- (all(is.integer(para)) || all(is.numeric(para))) && !any(is.na(para))
   if (lg) lg <- all(( (para+1) / (ceiling(para)+1) ) == 1)
   return(lg)
 }
-all.integerOrFactorOrNaValues <- function(para){
+.all_integerOrFactorOrNaValues <- function(para){
   lg <- (all(is.integer(para)) || all(is.numeric(para)) || all(is.factor(para)) )
   if (lg) lg <- all( ( (para+1) / (ceiling(para)+1) ) == 1, na.rm = T)
   return(lg)
 }
-all.characterValues <- function(para){
+.all_characterValues <- function(para){
   all(is.character(para)) && !any(is.na(para))
 }
-is.color <- function(x){
+.is_color <- function(x){
   res <- try(col2rgb(x),silent=TRUE)
   return(!"try-error"%in%class(res))
 }

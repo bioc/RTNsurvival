@@ -6,17 +6,42 @@
 \alias{tnsCoxInteraction}
 \title{Cox regression analysis for dual regulons}
 \usage{
-\S4method{tnsCoxInteraction}{TNS}(tns, stepFilter = TRUE, pValueCutoff = 0.05, verbose = TRUE)
+\S4method{tnsCoxInteraction}{TNS}(
+  tns,
+  regs1 = NULL,
+  regs2 = NULL,
+  stepFilter = TRUE,
+  pValueCutoff = 0.05,
+  phiThreshold = 0.5,
+  method = c("additive", "multipl"),
+  verbose = TRUE
+)
 }
 \arguments{
-\item{tns}{A \linkS4class{TNS} object with regulons used to compute the dual regulons.}
+\item{tns}{A \linkS4class{TNS} object with regulons used to compute the 
+dual regulons.}
+
+\item{regs1}{An optional character vector specifying regulons to test
+for interaction. If missing, it will be used all regulons listed in the 
+'TNS' object.}
+
+\item{regs2}{An optional character vector specifying regulons to test
+for interaction. If missing, it will be used all regulons listed in the 
+'TNS' object.}
 
 \item{stepFilter}{A single logical value specifying to use a step-filter 
 algorithm, testing dual regulons that have at least one significant predictor
 in the 'tnsCox' method (when stepFilter=TRUE) or not (when stepFilter=FALSE).}
 
-\item{pValueCutoff}{An numeric value. The p-value cutoff applied to the results
-from the previous steps of the analysis pipeline (when stepFilter=TRUE).}
+\item{pValueCutoff}{A numeric value in [0,1]. The p-value cutoff applied to 
+the results from the previous steps of the analysis pipeline 
+(when stepFilter=TRUE).}
+
+\item{phiThreshold}{A numeric value in [0,1]. The 'phi' coefficient is a 
+measure of association between two dichotomous variables. Here, a threshold 
+on 'phi' is used to remove regulon pairs with 'strong' dependencies.}
+
+\item{method}{Assess either additive or multiplicative interactions.}
 
 \item{verbose}{A logical value specifying to display detailed messages 
 (when verbose=TRUE) or not (when verbose=FALSE).}
@@ -32,7 +57,7 @@ Cox regression analysis for dual regulons, including the interaction term.
 }
 \examples{
 # load survival data
-data(survival.data)
+data(survival.data, package = "RTNsurvival")
 
 # load TNI-object
 data(stni, package = "RTN")

@@ -43,12 +43,12 @@ The **RTNsurvival** package provides a survival table for the samples in the `st
 
 ```{r, eval=FALSE}
 library(RTNsurvival)
-data(survival.data)
+data(survival.data, package = "RTNsurvival")
 ```
 
 ```{r, eval=TRUE, include=FALSE}
 library(RTNsurvival)
-data(survival.data)
+data(survival.data, package = "RTNsurvival")
 ```
 
 ## Preprocess input data

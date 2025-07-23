@@ -38,7 +38,7 @@ curves using 'survfit' and 'survdiff' functions, respectivelly.
 }
 \examples{
 # load survival data
-data(survival.data)
+data(survival.data, package = "RTNsurvival")
 
 # load TNI-object
 data(stni, package = "RTN")

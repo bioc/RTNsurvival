@@ -63,7 +63,7 @@ Creates TNS class onbjects for regulons an survival data.
 }
 \examples{
 # load survival data
-data(survival.data)
+data(survival.data, package = "RTNsurvival")
 
 # load TNI-object
 data(stni, package = "RTN")

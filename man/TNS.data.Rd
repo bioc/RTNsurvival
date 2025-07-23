@@ -11,7 +11,7 @@ A minimum dataset used to demonstrate RTNsurvival main features.
 \usage{data(survival.data)}
 
 \format{
-  \code{survival.data}{ A data.frame with a subset of samples in the Fletcher2013b package.}
+A data.frame with a subset of samples in the Fletcher2013b package.
 }
 
 \details{
