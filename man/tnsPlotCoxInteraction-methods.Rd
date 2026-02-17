@@ -11,8 +11,8 @@
   dualreg,
   xlim = NULL,
   ylim = NULL,
-  hlim = NULL,
-  hcols = c("#008080ff", "#d45500ff"),
+  zlim = NULL,
+  zcols = c("#008080ff", "#d45500ff"),
   colorPalette = "bluered",
   fname = "coxInteraction",
   fpath = ".",
@@ -23,31 +23,29 @@
 )
 }
 \arguments{
-\item{tns}{A `TNS` object with regulons used to compute the dual regulon.}
+\item{tns}{A `TNS` object.}
 
 \item{dualreg}{A character string with the name of a dual regulon.}
 
 \item{xlim}{A numeric vector of length 2, i.e. xlim = c(x1, x2),
-indicating the limits of the plot for the first member of the dual regulon. 
-If xlim = NULL, it will be derevided from the observed data ranges. 
-Values must be in the range [-2,2].}
+indicating regulon activity limits of the plot for the first member 
+of the dual regulon. If xlim = NULL, it will be derived from the 
+observed data ranges. Values must be in the range [-2,2].}
 
 \item{ylim}{A numeric vector of length 2, i.e. ylim = c(y1, y2),
-indicating the limits of the plot for the second member of the dual regulon. 
-If ylim = NULL, it will be derevided from the observed data ranges. 
-Values must be in the range [-2,2]. If plotype='2D', ylim represents the 
-two fixed values for the second member of the dual regulon.}
+indicating regulon activity limits of the plot for the second member 
+of the dual regulon. If ylim = NULL, it will be derived from the observed 
+data ranges. Values must be in the range [-2,2].}
 
-\item{hlim}{A numeric vector of length 2, i.e. hlim = c(h1, h2), 
-indicating the limits of the plot for the Hazard Ratio (HR).
-If hlim = NULL, it will be derevided from the observed data ranges.
-If plotype='2D', HR is represented in the y-axis.}
+\item{zlim}{A numeric vector of length 2, i.e. zlim = c(z1, z2), 
+indicating the limits of the plot for the Hazard Ratio (HR) values.
+If zlim = NULL, it will be derived from the observed data ranges.}
 
-\item{hcols}{A vector of length 2 indicating a diverging color scheme for 
+\item{zcols}{A vector of length 2 indicating a diverging color scheme for 
 the Hazard Ratio (HR).}
 
-\item{colorPalette}{A string, which can be 'red', 'blue', 'redblue', or 'bluered'. 
-Alternatively, it can be a vector of five colors or hex values.}
+\item{colorPalette}{A string, which can be 'red', 'blue', 'redblue', or 
+'bluered'. Alternatively, it can be a vector of five colors or hex values.}
 
 \item{fname}{A string. The name of the PDF file (when plotpdf=TRUE).}
 
@@ -57,9 +55,8 @@ Alternatively, it can be a vector of five colors or hex values.}
 
 \item{height}{A numeric value. The height of the plot.}
 
-\item{plotype}{A string indicating a plot type (options: 'p1', 'p2', 'p3'). 
-Plot types 'p1' and 'p2' will show HR on the y-axis, while 'p3' will show 
-HR on a color space.}
+\item{plotype}{A string indicating a plot type 
+(see \code{\link{mbrPlotInteraction}}).}
 
 \item{plotpdf}{A logical value.}
 }

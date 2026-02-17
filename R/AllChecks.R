@@ -281,7 +281,7 @@
     } 
   else if (type == "plotype"){
     if(.is_singleString(object1)) 
-      tp <- c("p1","p2","p3")
+      tp <- c("p1","p2","p3","p4")
     if(!.is_singleString(object1)){
       stop("'plotype' must be a single string.", call. = FALSE) 
     } else if (!(object1 %in% tp)){
@@ -330,11 +330,11 @@
     if(min(object1)<(-2) || max(object1)>2)
       stop("'ylim' must be in the range [-2,2].", call. = FALSE)
   }
-  else if (type == "hlim_log"){
+  else if (type == "zlim_log"){
     if(!is.numeric(object1) || length(object1) != 2) 
-      stop("'hlim' must be a numeric vector of length 2.", call. = FALSE)
+      stop("'zlim' must be a numeric vector of length 2.", call. = FALSE)
     if(any(object1<=0))
-      stop("'hlim' must be > 0 in log space.", call. = FALSE)
+      stop("'zlim' must be > 0 in log space.", call. = FALSE)
   }
   else if (type == "dualreg"){
     if(!.is_singleString(object1)) 
@@ -419,9 +419,9 @@
       stop("NOTE: 'cols' should be a vector with valid colors!", 
            call.=FALSE)
   }
-  else if(type == "hcols") {
+  else if(type == "zcols") {
     if(!.is_color(object1) || length(object1)!=2)
-      stop("NOTE: 'hcols' should be a vector (length = 2) with valid colors!", 
+      stop("NOTE: 'zcols' should be a vector (length = 2) with valid colors!", 
            call.=FALSE)
   }
   else if(type == "subgroup") {

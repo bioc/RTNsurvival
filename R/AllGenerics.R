@@ -56,19 +56,19 @@ setGeneric("tnsPlotKmInteraction",
     function(tns, dualreg = NULL, fname = "kmInteraction", 
         fpath = ".", xlab = "Months", 
         ylab = "Survival probability", colorPalette = "bluered", 
-        width = 4, height = 4, plotpdf = FALSE) 
+        width = 4.5, height = 4, plotype = "p1", plotpdf = FALSE) 
         standardGeneric("tnsPlotKmInteraction"), package = "RTNsurvival")
 
 setGeneric("tnsCoxInteraction",
     function(tns, regs1 = NULL, regs2 = regs1, stepFilter = TRUE, 
         pValueCutoff = 0.05, phiThreshold = 0.5,
-        method=c("additive", "multipl"), verbose = TRUE) 
+        method=c("multipl", "additive"), verbose = TRUE) 
         standardGeneric("tnsCoxInteraction"), package = "RTNsurvival")
 
 setGeneric("tnsPlotCoxInteraction",
-    function(tns, dualreg, xlim = NULL, ylim = NULL, hlim = NULL, 
-        hcols = c("#008080ff","#d45500ff"), colorPalette = "bluered", 
-        fname = "coxInteraction", fpath = ".", width = 5, height = 4, 
+    function(tns, dualreg, xlim = NULL, ylim = NULL, zlim = NULL, 
+        zcols = c("#008080ff","#d45500ff"), colorPalette = "bluered", 
+        fname = "coxInteraction", fpath = ".", width = 4, height = 4, 
         plotype = "p1", plotpdf = FALSE) 
         standardGeneric("tnsPlotCoxInteraction"), package = "RTNsurvival")
 

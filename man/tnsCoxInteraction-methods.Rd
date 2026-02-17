@@ -13,7 +13,7 @@
   stepFilter = TRUE,
   pValueCutoff = 0.05,
   phiThreshold = 0.5,
-  method = c("additive", "multipl"),
+  method = c("multipl", "additive"),
   verbose = TRUE
 )
 }
