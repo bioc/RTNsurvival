@@ -8,7 +8,7 @@
 \usage{
 \S4method{tnsPlotKmInteraction}{TNS}(
   tns,
-  dualreg = NULL,
+  dualreg,
   fname = "kmInteraction",
   fpath = ".",
   xlab = "Months",

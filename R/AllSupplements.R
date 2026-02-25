@@ -115,19 +115,18 @@ tnsStratification <- function(tns, sections = 1, center = FALSE,
     sum(regel%in%tni@rowAnnotation[, i])
   })
   colid <- names(colid[which.max(colid)])
-  idx <- which(tni@rowAnnotation[[colid]]%in%regel)
-  if(length(idx) < length(regel)) {
-    warning("Not all names in 'regulatoryElements' are available in the 'TNI' rowAnnotation!",
-            call.=FALSE)
-  }
-  idx <- tni@regulatoryElements %in% rownames(tni@rowAnnotation)[idx]
-  if(sum(idx)==0){
-    tp <- paste("NOTE: no names in 'regulatoryElements' has been used to call ",
-                "regulons in the provided 'TNI'!", sep="")
+  idx <- match(regel[regel %in% tni@rowAnnotation[[colid]]], 
+      tni@rowAnnotation[[colid]])
+  ids <- rownames(tni@rowAnnotation)[idx]
+  ids <- ids[ids %in% tni@regulatoryElements]
+  idx <- match(ids, tni@regulatoryElements)
+  if(length(idx)==0){
+    tp <- paste("None of the names in 'regulatoryElements' match the regulons",
+                "defined in the 'TNI' object.", sep="")
     stop(tp, call.=FALSE)
-  } else if(sum(idx) < length(regel)){
-    tp <- paste("Not all names in 'regulatoryElements' have been used to call ",
-                "regulons in the provided 'TNI'!", sep="")
+  } else if(length(idx) < length(regel)){
+    tp <- paste("Some names in 'regulatoryElements' do not match regulons in ",
+                "the supplied 'TNI' object.", sep="")
     warning(tp, call.=FALSE)
   }
   regel <- tni@regulatoryElements[idx]
