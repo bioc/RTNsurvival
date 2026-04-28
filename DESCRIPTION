@@ -1,7 +1,7 @@
 Package: RTNsurvival
 Type: Package
 Title: Survival analysis using transcriptional networks inferred by the RTN package
-Version: 1.36.0
+Version: 1.37.0
 Author: Clarice S. Groeneveld, Vinicius S. Chagas, Mauro A. A. Castro
 Maintainer: Clarice Groeneveld <clari.groeneveld@gmail.com>, Mauro A. A. Castro <mauro.a.castro@gmail.com>
 Depends: R(>= 4.4.0), RTN(>= 2.32), RTNduals(>= 1.32), methods
